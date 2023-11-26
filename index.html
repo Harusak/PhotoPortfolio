@@ -1,0 +1,132 @@
+<!DOCTYPE html><html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>写真ポートフォリオ</title>
+    <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* 全体のスクロールを無効にしているため、必要に応じて変更してください。 */
+      background-color: #333;
+    }
+
+    #header, #footer {
+      background-color: #333;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      position: fixed;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    #header {
+      top: 0;
+    }
+
+    #footer {
+      bottom: 0;
+    }
+
+    #photo-wrapper {
+      display: flex;
+      overflow-x: auto;
+      height: calc(100vh - 80px); /* ヘッダーとフッターの高さを引いた値 */
+      position: relative; /* スクロールバーの位置を調整するため */
+      top: 40px; /* ヘッダーの高さに合わせる */
+    }
+
+    .photo-container {
+      min-width: 80vw; /* ビューポート幅を最小幅とする */
+      max-height: 30vw; /* ビューポート幅を最小幅とする */
+      margin-left: 1px; /* 左の余白 */
+      margin-right: 1px; /* 右の余白 */
+      display: flex; /* Flexboxを適用 */
+      flex-direction: column; /* 子要素を縦方向に配置 */
+      align-items: center; /* 中央揃え */
+    }
+
+    .photo {
+      max-height: calc(80vh - 80px - 40px); /* ヘッダー、フッター、説明の高さを引いたビューポートの高さ */
+      max-width: 80%; /* コンテナの幅に合わせる */
+      object-fit: contain; /* 画像のアスペクト比を保持 */
+    }
+    
+    .photo-description {
+      width: 80%; /* 親要素の幅に合わせる */
+      text-align: center;
+      color: white;
+      padding: 20px;
+    }
+
+    .title {
+      font-size: larger;
+    }
+    
+    .caption {
+      font-size: smaller;
+    }
+
+    .position-1 { transform: translateY(20%); }
+    .position-2 { transform: translateY(24%); }
+    .position-3 { transform: translateY(28%); }
+    .position-4 { transform: translateY(32%); }
+    .position-5 { transform: translateY(36%); }
+  </style>
+</head>
+<body>
+
+<div id="header">Hal Sakaguchi | Portfolio</div>
+
+<div id="photo-wrapper">
+  <div class="photo-container">
+    <img class="photo" src="https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg" alt="残影">
+  </div>
+  <div class="photo-container">
+    <img class="photo" src="https://live.staticflickr.com/65535/53309410825_fd5316fca7_k.jpg" alt="title">
+  </div>
+  <div class="photo-container">
+    <img class="photo" src="https://live.staticflickr.com/65535/53324907283_21ad32570c_h.jpg" alt="title">
+  </div>
+  <div class="photo-container">
+    <img class="photo" src="https://live.staticflickr.com/65535/53325019104_ccc4d609a1_h.jpg" alt="title">
+  </div>
+  <div class="photo-container">
+    <img class="photo" src="https://live.staticflickr.com/65535/52901207351_ce67bc5509_k.jpg" alt="title">
+  </div>
+  <!-- ...他の写真要素... -->
+</div>
+
+<div id="footer">&copy; 2023 Hal Sakaguchi. All Rights Reserved.</div>
+
+<script>
+  const photoWrapper = document.getElementById('photo-wrapper');
+
+  // ユーザーがスクロールするときに発生するイベント
+  window.addEventListener('wheel', function(event) {
+    // deltaY は縦スクロール量を示すが、この値を使って横スクロールする
+    if (event.deltaY != 0) {
+      // prevent page from scrolling down
+      event.preventDefault();
+      photoWrapper.scrollLeft += event.deltaY + event.deltaX;
+    }
+  }, { passive: false });
+
+  const photoContainers = document.querySelectorAll('.photo-container');
+  let lastPosition = -1; // 最後に割り当てた位置を記録する変数
+
+  photoContainers.forEach(container => {
+    let position;
+    do {
+      position = Math.floor(Math.random() * 5) + 1; // 1から5のランダムな数
+    } while (position === lastPosition); // 前のコンテナと同じ位置でなければOK
+
+    container.classList.add(`position-${position}`);
+    lastPosition = position; // この位置を記録
+  });
+
+</script>
+
+</body>
+</html>
