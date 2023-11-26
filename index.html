@@ -2,6 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <title>写真ポートフォリオ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <style>
     body, html {
       margin: 0;
@@ -22,11 +23,22 @@
     }
 
     #header {
-      top: 0;
+      display: flex;
+      justify-content: center; /* 中央揃え */
+      align-items: center;
     }
-
-    #footer {
-      bottom: 0;
+    
+    #header span {
+      flex-grow: 1; /* テキストを拡張して、アイコンを右に押し出す */
+      text-align: center;
+    }
+    
+    #header .fab {
+      color: white;
+      margin-left: 10px;
+      font-size: 24px;
+      position: absolute;
+      right: 50px; /* 右端に配置 */
     }
 
     #photo-wrapper {
@@ -85,7 +97,12 @@
 </head>
 <body>
 
-<div id="header">Hal Sakaguchi | Portfolio</div>
+<div id="header">
+  <span>Hal Sakaguchi | Portfolio</span>
+  <a href="https://www.instagram.com/saka.hal_" target="_blank">
+    <i class="fab fa-instagram"></i>
+  </a>
+</div>
 
 <div id="photo-wrapper">
   <div class="photo-container">
