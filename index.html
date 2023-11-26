@@ -33,18 +33,20 @@
       display: flex;
       overflow-x: auto;
       height: calc(100vh - 80px); /* ヘッダーとフッターの高さを引いた値 */
-      position: relative; /* スクロールバーの位置を調整するため */
-      top: 40px; /* ヘッダーの高さに合わせる */
+      position: relative;
+      top: 40px;
+      justify-content: flex-start; /* 追加: 子要素を中央に配置 */
     }
 
     .photo-container {
-      min-width: 80vw; /* ビューポート幅を最小幅とする */
-      max-height: 30vw; /* ビューポート幅を最小幅とする */
-      margin-left: 1px; /* 左の余白 */
-      margin-right: 1px; /* 右の余白 */
-      display: flex; /* Flexboxを適用 */
-      flex-direction: column; /* 子要素を縦方向に配置 */
-      align-items: center; /* 中央揃え */
+      min-width: 80vw;
+      height: 95%; /* 追加: コンテナの高さを100%に設定 */
+      margin-left: 1px;
+      margin-right: 1px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center; /* 追加: 子要素を縦方向の中央に配置 */
     }
 
     .photo {
@@ -52,27 +54,12 @@
       max-width: 80%; /* コンテナの幅に合わせる */
       object-fit: contain; /* 画像のアスペクト比を保持 */
     }
-    
-    .photo-description {
-      width: 80%; /* 親要素の幅に合わせる */
-      text-align: center;
-      color: white;
-      padding: 20px;
-    }
 
-    .title {
-      font-size: larger;
-    }
-    
-    .caption {
-      font-size: smaller;
-    }
-
-    .position-1 { transform: translateY(20%); }
-    .position-2 { transform: translateY(24%); }
-    .position-3 { transform: translateY(28%); }
-    .position-4 { transform: translateY(32%); }
-    .position-5 { transform: translateY(36%); }
+    .position-1 { transform: translateY(4%); }
+    .position-2 { transform: translateY(2%); }
+    .position-3 { transform: translateY(0%); }
+    .position-4 { transform: translateY(-2%); }
+    .position-5 { transform: translateY(-4%); }
   </style>
 </head>
 <body>
@@ -101,31 +88,20 @@
 <div id="footer">&copy; 2023 Hal Sakaguchi. All Rights Reserved.</div>
 
 <script>
-  const photoWrapper = document.getElementById('photo-wrapper');
-
-  // ユーザーがスクロールするときに発生するイベント
-  window.addEventListener('wheel', function(event) {
-    // deltaY は縦スクロール量を示すが、この値を使って横スクロールする
-    if (event.deltaY != 0) {
-      // prevent page from scrolling down
-      event.preventDefault();
-      photoWrapper.scrollLeft += event.deltaY + event.deltaX;
-    }
-  }, { passive: false });
-
   const photoContainers = document.querySelectorAll('.photo-container');
-  let lastPosition = -1; // 最後に割り当てた位置を記録する変数
+  const positions = ['position-1', 'position-2', 'position-3', 'position-4', 'position-5'];
 
   photoContainers.forEach(container => {
-    let position;
-    do {
-      position = Math.floor(Math.random() * 5) + 1; // 1から5のランダムな数
-    } while (position === lastPosition); // 前のコンテナと同じ位置でなければOK
-
-    container.classList.add(`position-${position}`);
-    lastPosition = position; // この位置を記録
+    const randomPosition = positions[Math.floor(Math.random() * positions.length)];
+    container.classList.add(randomPosition);
   });
 
+  window.addEventListener('wheel', function(event) {
+  if (event.deltaY != 0) {
+    event.preventDefault();
+    document.getElementById('photo-wrapper').scrollLeft += event.deltaY;
+  }
+  }, { passive: false });
 </script>
 
 </body>
