@@ -55,6 +55,27 @@
       object-fit: contain; /* 画像のアスペクト比を保持 */
     }
 
+    /* ポップアップ表示用のスタイル */
+    .overlay {
+      display: none;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 200;
+    }
+
+    .popup-photo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 90%;
+      max-height: 90%;
+    }
+
     .position-1 { transform: translateY(4%); }
     .position-2 { transform: translateY(2%); }
     .position-3 { transform: translateY(0%); }
@@ -85,9 +106,38 @@
   <!-- ...他の写真要素... -->
 </div>
 
+<div class="overlay" id="photo-overlay">
+  <img class="popup-photo" id="popup-photo">
+</div>
+
 <div id="footer">&copy; 2023 Hal Sakaguchi. All Rights Reserved.</div>
 
 <script>
+  // ポップアップ表示用のイベントリスナーを設定
+  const photos = document.querySelectorAll('.photo'); // `.photo`に変更
+  const overlay = document.getElementById('photo-overlay');
+  const popupPhoto = document.getElementById('popup-photo');
+
+  photos.forEach(photo => {
+    photo.addEventListener('click', function() {
+      popupPhoto.src = this.src; // `this.src`を使用
+      overlay.style.display = 'block';
+    });
+  });
+
+  overlay.addEventListener('click', function() {
+    this.style.display = 'none'; // `this`を使用
+  });
+
+  // 横スクロール機能
+  window.addEventListener('wheel', function(event) {
+    if (event.deltaY != 0) {
+      event.preventDefault();
+      document.getElementById('photo-wrapper').scrollLeft += event.deltaY;
+    }
+  }, { passive: false });
+
+  // ランダムなY位置の設定
   const photoContainers = document.querySelectorAll('.photo-container');
   const positions = ['position-1', 'position-2', 'position-3', 'position-4', 'position-5'];
 
@@ -96,12 +146,6 @@
     container.classList.add(randomPosition);
   });
 
-  window.addEventListener('wheel', function(event) {
-  if (event.deltaY != 0) {
-    event.preventDefault();
-    document.getElementById('photo-wrapper').scrollLeft += event.deltaY;
-  }
-  }, { passive: false });
 </script>
 
 </body>
