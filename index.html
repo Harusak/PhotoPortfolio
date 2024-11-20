@@ -331,9 +331,9 @@
 
     <!-- ブログセクション -->
     {% raw %}
-    <section class="blog" id="blog">
+    <section class="blog" id="blog" style="display: none; background-image: url('https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg');">
       {% for post in site.posts %}
-      <div class="card" style="background-image: url('{{ post.image }}');">
+      <div class="card">
         <h2>{{ post.title }}</h2>
         <p>{{ post.description }}</p>
         <a href="{{ post.url }}"><button>Read More</button></a>
