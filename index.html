@@ -85,6 +85,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
+      cursor: pointer; /* クリック可能なカーソル */
     }
 
     .portfolio .photo img {
@@ -93,6 +94,11 @@
       border-radius: 0.5rem;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       object-fit: contain;
+      transition: transform 0.3s;
+    }
+
+    .portfolio .photo img:hover {
+      transform: scale(1.05); /* ホバー時に少し拡大 */
     }
 
     /* ブログセクション */
@@ -227,6 +233,29 @@
       justify-content: center;
     }
 
+    /* ポップアップ表示用のスタイル */
+    .overlay {
+      display: none; /* 初期状態は非表示 */
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7); /* 半透明の黒背景 */
+      z-index: 200; /* 他の要素の上に表示 */
+    }
+
+    .popup-photo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%); /* 中央揃え */
+      max-width: 90%; /* ウィンドウ幅の90%を最大幅に */
+      max-height: 90%; /* ウィンドウ高さの90%を最大高さに */
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
     /* レスポンシブ調整 */
     @media (max-width: 768px) {
       .blog .card {
@@ -256,16 +285,16 @@
         <img src="https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg" alt="残影">
       </div>
       <div class="photo">
-        <img src="https://live.staticflickr.com/65535/53309410825_fd5316fca7_k.jpg" alt="title">
+        <img src="https://live.staticflickr.com/65535/53309410825_fd5316fca7_k.jpg" alt="タイトル1">
       </div>
       <div class="photo">
-        <img src="https://live.staticflickr.com/65535/53324907283_21ad32570c_h.jpg" alt="title">
+        <img src="https://live.staticflickr.com/65535/53324907283_21ad32570c_h.jpg" alt="タイトル2">
       </div>
       <div class="photo">
-        <img src="https://live.staticflickr.com/65535/53325019104_ccc4d609a1_h.jpg" alt="title">
+        <img src="https://live.staticflickr.com/65535/53325019104_ccc4d609a1_h.jpg" alt="タイトル3">
       </div>
       <div class="photo">
-        <img src="https://live.staticflickr.com/65535/52901207351_ce67bc5509_k.jpg" alt="title">
+        <img src="https://live.staticflickr.com/65535/52901207351_ce67bc5509_k.jpg" alt="タイトル4">
       </div>
     </section>
 
@@ -333,6 +362,11 @@
     </button>
   </nav>
 
+  <!-- ポップアップオーバーレイ -->
+  <div class="overlay" id="photo-overlay">
+    <img class="popup-photo" id="popup-photo" alt="拡大表示画像">
+  </div>
+
   <!-- スクリプト -->
   <script>
     // ページ間のナビゲーション
@@ -352,7 +386,7 @@
         sections[key].style.display = 'none';
       }
       // 指定されたページを表示
-      sections[page].style.display = 'flex';
+      sections[page].style.display = page === 'about' ? 'block' : 'flex';
       activePage = page;
       updateActiveButton();
     }
@@ -420,6 +454,30 @@
 
     // 初期表示
     showPage('portfolio');
+
+    // 画像ポップアップ機能の実装
+    const photos = document.querySelectorAll('.portfolio .photo img'); // ポートフォリオ内の画像要素を取得
+    const overlay = document.getElementById('photo-overlay'); // オーバーレイ要素を取得
+    const popupPhoto = document.getElementById('popup-photo'); // ポップアップ表示用の画像要素を取得
+
+    // 各画像にクリックイベントを設定
+    photos.forEach(photo => {
+      photo.addEventListener('click', function() {
+        popupPhoto.src = this.src; // クリックした画像のsrcをポップアップ画像に設定
+        popupPhoto.alt = this.alt; // alt属性も設定
+        overlay.style.display = 'block'; // オーバーレイを表示
+      });
+    });
+
+    // オーバーレイをクリックすると非表示にする
+    overlay.addEventListener('click', function() {
+      this.style.display = 'none'; // オーバーレイを非表示
+    });
+
+    // スマートフォンなどタッチデバイス対応（オーバーレイ外をタップしても閉じる）
+    popupPhoto.addEventListener('click', function(e) {
+      e.stopPropagation(); // 画像自体のクリックはオーバーレイのクリックイベントに伝播させない
+    });
   </script>
 </body>
 </html>
