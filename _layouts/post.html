@@ -2,20 +2,111 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ page.title }} | {{ site.title }}</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 </head>
-<body>
-  <header>
-    <a href="{{ site.baseurl }}/">ホームに戻る</a>
-  </header>
-  <main>
-    <article>
-      <h1>{{ page.title }}</h1>
-      <p>{{ page.date | date: "%Y年%m月%d日" }}</p>
-      {{ content }}
-    </article>
-  </main>
+<body class="light">
+  <!-- メインコンテンツ -->
+  <div class="h-screen flex flex-col">
+    <main class="flex-1 relative overflow-hidden">
+      <!-- 画像部分 -->
+      <div id="image-container" class="fixed z-10 transition-all duration-300 ease-in-out top-4 left-4 right-4" style="height: calc(40vh - 2rem);">
+        <div id="image-wrapper" class="relative w-full h-full overflow-hidden rounded-3xl shadow-lg cursor-pointer" role="button" tabindex="0" aria-label="Shrink image">
+          <img src="{{ page.image }}" alt="Blog post main image" class="transition-opacity duration-500 ease-in-out object-cover w-full h-full">
+          <div id="image-overlay" class="absolute inset-0 bg-black bg-opacity-30"></div>
+        </div>
+      </div>
+      <!-- 記事コンテンツ -->
+      <div id="content-area" class="relative z-0 h-full overflow-y-auto pt-[calc(40vh+1rem)] pb-16">
+        <article class="bg-white dark:bg-gray-800 p-6 md:p-8 min-h-screen rounded-t-3xl">
+          <div class="prose dark:prose-invert max-w-none">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4">{{ page.title }}</h1>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">Posted on {{ page.date | date: "%B %d, %Y" }} by {{ page.author }}</p>
+            {{ content }}
+          </div>
+        </article>
+      </div>
+    </main>
+    <!-- ナビゲーションバー -->
+    <nav class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center items-center p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
+      <a href="{{ '/' | relative_url }}" class="p-2 mx-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+        <!-- ホームアイコンのSVG -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+      </a>
+      <a href="{{ '/blog/' | relative_url }}" class="p-2 mx-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+        <!-- ブログアイコンのSVG -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+        </svg>
+      </a>
+      <a href="{{ '/about/' | relative_url }}" class="p-2 mx-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+        <!-- アバウトアイコンのSVG -->
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+      </a>
+    </nav>
+  </div>
+
+  <!-- スクリプト -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // テーマの切り替え
+      const isDarkMode = localStorage.getItem('theme') === 'dark';
+      if (isDarkMode) {
+        document.body.classList.remove('light');
+        document.body.classList.add('dark');
+      }
+
+      // 画像の拡大縮小
+      const imageContainer = document.getElementById('image-container');
+      const imageWrapper = document.getElementById('image-wrapper');
+      const imageOverlay = document.getElementById('image-overlay');
+      const contentArea = document.getElementById('content-area');
+      let isImageExpanded = true;
+
+      function toggleImageExpansion() {
+        isImageExpanded = !isImageExpanded;
+        updateImageState();
+      }
+
+      function updateImageState() {
+        if (isImageExpanded) {
+          imageContainer.classList.remove('top-4', 'right-4', 'w-1/3', 'max-w-sm');
+          imageContainer.classList.add('top-4', 'left-4', 'right-4');
+          imageContainer.style.height = 'calc(40vh - 2rem)';
+          imageContainer.style.aspectRatio = 'auto';
+
+          imageWrapper.classList.remove('backdrop-filter', 'backdrop-blur-sm', 'bg-opacity-70');
+          imageOverlay.classList.remove('bg-opacity-10');
+          imageOverlay.classList.add('bg-opacity-30');
+          imageWrapper.setAttribute('aria-label', 'Shrink image');
+        } else {
+          imageContainer.classList.remove('top-4', 'left-4', 'right-4');
+          imageContainer.classList.add('top-4', 'right-4', 'w-1/3', 'max-w-sm');
+          imageContainer.style.height = 'auto';
+          imageContainer.style.aspectRatio = '16 / 9'; // 画像のアスペクト比
+
+          imageWrapper.classList.add('backdrop-filter', 'backdrop-blur-sm', 'bg-opacity-70');
+          imageOverlay.classList.remove('bg-opacity-30');
+          imageOverlay.classList.add('bg-opacity-10');
+          imageWrapper.setAttribute('aria-label', 'Expand image');
+        }
+      }
+
+      imageWrapper.addEventListener('click', toggleImageExpansion);
+
+      // スクロール時の画像縮小
+      contentArea.addEventListener('scroll', function() {
+        if (contentArea.scrollTop > 100 && isImageExpanded) {
+          isImageExpanded = false;
+          updateImageState();
+        }
+      });
+    });
+  </script>
 </body>
 </html>
-
