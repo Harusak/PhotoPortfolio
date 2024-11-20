@@ -106,37 +106,41 @@
       display: flex;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      padding: 1rem;
       height: 100%;
-      align-items: center;
-      justify-content: center;
+      scrollbar-width: none; /* Firefox */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      scrollbar-width: none;
+      padding: 1rem;
     }
 
     .blog::-webkit-scrollbar {
-      display: none;
+      display: none; /* Chrome, Safari */
     }
 
     .blog .card {
       scroll-snap-align: center;
-      flex: 0 0 calc(40vw);
-      height: calc(30vw);
-      margin: 0.5rem;
+      flex: 0 0 80vw; /* ポートフォリオと同じ幅 */
+      height: 95%; /* ポートフォリオと同じ高さ */
+      margin: 0 0.5rem;
       padding: 1rem;
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(10px);
       border-radius: 0.5rem;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      cursor: pointer; /* クリック可能なカーソル */
+      transition: transform 0.3s;
+    }
+
+    .blog .card:hover {
+      transform: scale(1.05); /* ホバー時に少し拡大 */
     }
 
     .blog .card h2 {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       margin-bottom: 0.5rem;
     }
 
@@ -260,7 +264,7 @@
     @media (max-width: 768px) {
       .blog .card {
         flex: 0 0 80vw;
-        height: calc(60vw);
+        height: 60vw;
       }
     }
   </style>
@@ -386,7 +390,7 @@
         sections[key].style.display = 'none';
       }
       // 指定されたページを表示
-      sections[page].style.display = page === 'about' ? 'block' : 'flex';
+      sections[page].style.display = (page === 'about') ? 'block' : 'flex';
       activePage = page;
       updateActiveButton();
     }
@@ -457,15 +461,35 @@
 
     // 画像ポップアップ機能の実装
     const photos = document.querySelectorAll('.portfolio .photo img'); // ポートフォリオ内の画像要素を取得
+    const blogCards = document.querySelectorAll('.blog .card'); // ブログセクションのカード要素を取得
     const overlay = document.getElementById('photo-overlay'); // オーバーレイ要素を取得
     const popupPhoto = document.getElementById('popup-photo'); // ポップアップ表示用の画像要素を取得
 
-    // 各画像にクリックイベントを設定
+    // ポートフォリオ画像にクリックイベントを設定
     photos.forEach(photo => {
       photo.addEventListener('click', function() {
         popupPhoto.src = this.src; // クリックした画像のsrcをポップアップ画像に設定
         popupPhoto.alt = this.alt; // alt属性も設定
         overlay.style.display = 'block'; // オーバーレイを表示
+      });
+    });
+
+    // ブログカードにクリックイベントを設定
+    blogCards.forEach(card => {
+      // カード内の画像がないため、デフォルトの画像や指定した画像を表示するようにします。
+      // ここではカードの背景画像をポップアップとして表示する例を示します。
+      // 必要に応じて画像URLをデータ属性などで指定してください。
+
+      card.addEventListener('click', function() {
+        // 例として、背景画像URLを取得
+        const bgImage = window.getComputedStyle(this).backgroundImage;
+        // URLの抽出
+        const urlMatch = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+        if (urlMatch && urlMatch[1]) {
+          popupPhoto.src = urlMatch[1];
+          popupPhoto.alt = this.querySelector('h2').textContent;
+          overlay.style.display = 'block';
+        }
       });
     });
 
