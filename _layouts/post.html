@@ -187,6 +187,7 @@
       const themeToggleButton = document.getElementById('theme-toggle');
       const iconMoon = document.getElementById('icon-moon');
       const iconSun = document.getElementById('icon-sun');
+      const navButtons = document.querySelectorAll('nav .button');
 
       // ローカルストレージからテーマを取得
       const savedTheme = localStorage.getItem('theme') || 'light';
@@ -246,6 +247,16 @@
           imageContainer.style.height = 'auto';
         }
       }
+
+      // 各ボタンにクリックイベントを設定
+      navButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          const targetUrl = button.getAttribute('data-target'); // data-target属性を取得
+          if (targetUrl) {
+            window.location.href = targetUrl; // 対象ページに遷移
+          }
+        });
+      });
 
       // 初期化
       updateImageContainer();
