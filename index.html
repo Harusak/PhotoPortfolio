@@ -1,4 +1,5 @@
 ---
+layout: default
 ---
 <!DOCTYPE html>
 <html lang="ja">
@@ -310,6 +311,8 @@
     </a>
   </header>
 
+  {% include navigation.html %}
+
   <!-- メインコンテンツ -->
   <main>
     <!-- ポートフォリオセクション -->
@@ -348,39 +351,6 @@
       <p>Hi, I am Hal Sakaguchi, a passionate photographer...</p>
     </section>
   </main>
-
-  <!-- ナビゲーション -->
-  <nav>
-    <button class="button active" id="btn-portfolio" aria-label="Portfolio">
-      <!-- Home アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 3l7 6v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V15H10v7a1 1 0 01-1 1H5a1 1 0 01-1-1V9l7-6z"/>
-      </svg>
-    </button>
-    <button class="button" id="btn-blog" aria-label="Blog">
-      <!-- Book アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M19 2H8a2 2 0 00-2 2v16l4-4h9a2 2 0 002-2V4a2 2 0 00-2-2z"/>
-      </svg>
-    </button>
-    <button class="button" id="btn-about" aria-label="About">
-      <!-- User アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V21h19.2v-1.8c0-3.2-6.4-4.8-9.6-4.8z"/>
-      </svg>
-    </button>
-    <button class="button theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
-      <!-- Moon アイコン -->
-      <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
-        <path d="M21.752 15.002A9 9 0 1111.998 2a7 7 0 109.754 13.002z"/>
-      </svg>
-      <!-- Sun アイコン -->
-      <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 4.5V2m0 20v-2.5m5.303-17.303l1.768-1.768m-14.142 0l1.768 1.768M22 12h-2.5M4.5 12H2m17.303 5.303l-1.768 1.768M6.464 6.464l-1.768-1.768"/>
-        <circle cx="12" cy="12" r="5"/>
-      </svg>
-    </button>
-  </nav>
 
   <!-- ポップアップオーバーレイ -->
   <div class="overlay" id="photo-overlay">
