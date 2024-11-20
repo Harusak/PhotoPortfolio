@@ -337,7 +337,7 @@
       <div class="card">
         <h2>{{ post.title }}</h2>
         <p>{{ post.description }}</p>
-        <a href="{{ post.url }}"><button>Read More</button></a>
+        <a href="{{ post.url | relative_url}}"><button>Read More</button></a>
       </div>
       {% endfor %}
     </section>
