@@ -330,28 +330,17 @@
     </section>
 
     <!-- ブログセクション -->
-    <section class="blog" id="blog" style="display: none; background-image: url('https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg');">
-      <div class="card">
-        <h2>工事中</h2>
-        <p>wakaran!</p>
-        <button>Read More</button>
+    {% raw %}
+    <section class="blog" id="blog">
+      {% for post in site.posts %}
+      <div class="card" style="background-image: url('{{ post.image }}');">
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.description }}</p>
+        <a href="{{ post.url }}"><button>Read More</button></a>
       </div>
-      <div class="card">
-        <h2>工事中</h2>
-        <p>wakaran!</p>
-        <button>Read More</button>
-      </div>
-      <div class="card">
-        <h2>工事中</h2>
-        <p>wakaran!</p>
-        <button>Read More</button>
-      </div>
-      <div class="card">
-        <h2>工事中</h2>
-        <p>wakaran!</p>
-        <button>Read More</button>
-      </div>
+      {% endfor %}
     </section>
+    {% endraw %}
 
     <!-- Aboutセクション -->
     <section class="about" id="about" style="display: none;">
