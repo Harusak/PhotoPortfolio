@@ -5,11 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hal Sakaguchi | Portfolio</title>
   <style>
+    /* グローバルボックスサイズの設定 */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
     /* 基本スタイル */
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       transition: background-color 0.3s, color 0.3s;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     /* ライトモード */
@@ -26,18 +34,19 @@
 
     /* ヘッダー */
     header {
+      flex: 0 0 4rem; /* 固定高さ4rem */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1rem;
+      background-color: inherit;
+      color: inherit;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       z-index: 50;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background-color: inherit;
-      color: inherit;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     header h1 {
@@ -59,8 +68,12 @@
 
     /* メインコンテンツ */
     main {
-      padding-top: 4rem;
-      height: calc(100vh - 4rem);
+      flex: 1 1 auto;
+      padding-top: 4rem; /* ヘッダーの高さを考慮 */
+      padding-bottom: 3rem; /* ナビゲーションバーの高さを考慮 */
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
       overflow: hidden;
     }
 
@@ -71,6 +84,10 @@
       scroll-snap-type: x mandatory;
       height: 100%;
       scrollbar-width: none; /* Firefox */
+      padding: 1rem 0;
+      align-items: center; /* 垂直方向でセンタリング */
+      justify-content: flex-start; /* 左寄せ */
+      flex: 1 1 auto;
     }
 
     .portfolio::-webkit-scrollbar {
@@ -86,6 +103,7 @@
       justify-content: center;
       position: relative;
       cursor: pointer; /* クリック可能なカーソル */
+      margin: 0 0.5rem;
     }
 
     .portfolio .photo img {
@@ -108,12 +126,10 @@
       scroll-snap-type: x mandatory;
       height: 100%;
       scrollbar-width: none; /* Firefox */
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      padding: 1rem;
+      padding: 1rem 0;
       align-items: center; /* 垂直方向でセンタリング */
       justify-content: flex-start; /* 左寄せ */
+      flex: 1 1 auto;
     }
 
     .blog::-webkit-scrollbar {
@@ -171,6 +187,7 @@
 
     .blog .card p {
       flex-grow: 1;
+      margin: 0;
     }
 
     .blog .card button {
@@ -193,9 +210,9 @@
       padding: 1rem;
       max-width: 40rem;
       margin: 0 auto;
-      height: calc(100vh - 4rem);
       overflow-y: auto;
       scrollbar-width: none;
+      flex: 1 1 auto;
     }
 
     .about::-webkit-scrollbar {
@@ -209,18 +226,20 @@
 
     /* ナビゲーション */
     nav {
-      position: fixed;
-      bottom: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
+      flex: 0 0 3rem; /* 固定高さ3rem */
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 0.5rem 1rem;
+      padding: 0 1rem;
       background: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(10px);
       border-radius: 9999px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
     }
 
     body.dark nav {
@@ -272,13 +291,12 @@
       height: 100%;
       background-color: rgba(0, 0, 0, 0.7); /* 半透明の黒背景 */
       z-index: 200; /* 他の要素の上に表示 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .popup-photo {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%); /* 中央揃え */
       max-width: 90%; /* ウィンドウ幅の90%を最大幅に */
       max-height: 90%; /* ウィンドウ高さの90%を最大高さに */
       border-radius: 0.5rem;
@@ -291,6 +309,15 @@
         flex: 0 0 80vw; /* 幅80% */
         aspect-ratio: 4 / 3; /* 固定4:3アスペクト比 */
         max-width: 500px; /* 最大幅を500pxに調整 */
+      }
+
+      header h1 {
+        font-size: 1.2rem;
+      }
+
+      nav .button svg {
+        width: 18px;
+        height: 18px;
       }
     }
   </style>
@@ -427,10 +454,19 @@
       // アクティブなボタンにactiveクラスを追加
       if (activePage === 'portfolio') {
         btnPortfolio.classList.add('active');
+        btnPortfolio.setAttribute('aria-pressed', 'true');
+        btnBlog.setAttribute('aria-pressed', 'false');
+        btnAbout.setAttribute('aria-pressed', 'false');
       } else if (activePage === 'blog') {
         btnBlog.classList.add('active');
+        btnPortfolio.setAttribute('aria-pressed', 'false');
+        btnBlog.setAttribute('aria-pressed', 'true');
+        btnAbout.setAttribute('aria-pressed', 'false');
       } else if (activePage === 'about') {
         btnAbout.classList.add('active');
+        btnPortfolio.setAttribute('aria-pressed', 'false');
+        btnBlog.setAttribute('aria-pressed', 'false');
+        btnAbout.setAttribute('aria-pressed', 'true');
       }
     }
 
@@ -496,7 +532,7 @@
       photo.addEventListener('click', function() {
         popupPhoto.src = this.src; // クリックした画像のsrcをポップアップ画像に設定
         popupPhoto.alt = this.alt; // alt属性も設定
-        overlay.style.display = 'block'; // オーバーレイを表示
+        overlay.style.display = 'flex'; // オーバーレイを表示
       });
     });
 
@@ -509,7 +545,7 @@
         if (urlMatch && urlMatch[1]) {
           popupPhoto.src = urlMatch[1];
           popupPhoto.alt = this.querySelector('h2').textContent;
-          overlay.style.display = 'block';
+          overlay.style.display = 'flex'; // オーバーレイを表示
         }
       });
     });
@@ -519,7 +555,7 @@
       this.style.display = 'none'; // オーバーレイを非表示
     });
 
-    // スマートフォンなどタッチデバイス対応（オーバーレイ外をタップしても閉じる）
+    // スマートフォンなどタッチデバイス対応（オーバーレイ内の画像をクリックしても閉じない）
     popupPhoto.addEventListener('click', function(e) {
       e.stopPropagation(); // 画像自体のクリックはオーバーレイのクリックイベントに伝播させない
     });
