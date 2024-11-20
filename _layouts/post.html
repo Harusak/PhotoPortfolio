@@ -129,7 +129,7 @@
         <!-- テキストコンテンツ -->
         <div class="prose dark:prose-invert max-w-none">
           <h1 class="text-3xl md:text-4xl font-bold mb-4">{{ page.title }}</h1>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">{{ page.date | date: "%Y年%-m月%-d日" }} 投稿者：{{ page.author | default: site.author }}</p>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">{{ page.date | date: "%Y年%-m月%-d日" }}</p>
 
           {{ content }}
 
@@ -142,6 +142,44 @@
   {% include navigation.html %}
 
   <script>
+    const btnPortfolio = document.getElementById('btn-portfolio');
+    const btnBlog = document.getElementById('btn-blog');
+    const btnAbout = document.getElementById('btn-about');
+    const sections = {
+      'portfolio': document.getElementById('portfolio'),
+      'blog': document.getElementById('blog'),
+      'about': document.getElementById('about')
+    };
+    let activePage = 'portfolio';
+
+    function showPage(page) {
+      // 全てのセクションを非表示
+      for (const key in sections) {
+        sections[key].style.display = 'none';
+      }
+      // 指定されたページを表示
+      sections[page].style.display = page === 'about' ? 'block' : 'flex';
+      activePage = page;
+      updateActiveButton();
+    }
+
+    function updateActiveButton() {
+      // 全てのボタンからactiveクラスを削除
+      document.querySelectorAll('nav .button').forEach(btn => btn.classList.remove('active'));
+      // アクティブなボタンにactiveクラスを追加
+      if (activePage === 'portfolio') {
+        btnPortfolio.classList.add('active');
+      } else if (activePage === 'blog') {
+        btnBlog.classList.add('active');
+      } else if (activePage === 'about') {
+        btnAbout.classList.add('active');
+      }
+    }
+
+    btnPortfolio.addEventListener('click', () => showPage('portfolio'));
+    btnBlog.addEventListener('click', () => showPage('blog'));
+    btnAbout.addEventListener('click', () => showPage('about'));
+
     document.addEventListener('DOMContentLoaded', function() {
       // 状態変数
       let isDarkMode = {% if page.theme == 'dark' %}true{% else %}false{% endif %};
