@@ -1,170 +1,425 @@
-<!DOCTYPE html><html lang="ja">
+<!DOCTYPE html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>写真ポートフォリオ</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <style>
-    body, html {
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hal Sakaguchi | Portfolio</title>
+  <style>
+    /* 基本スタイル */
+    body {
       margin: 0;
-      padding: 0;
-      overflow: hidden; /* 全体のスクロールを無効にしているため、必要に応じて変更してください。 */
-      background-color: #333;
+      font-family: Arial, sans-serif;
+      transition: background-color 0.3s, color 0.3s;
     }
 
-    #header, #footer {
-      background-color: #333;
-      color: white;
-      padding: 10px;
-      text-align: center;
+    /* ライトモード */
+    body.light {
+      background-color: #f3f4f6;
+      color: #1f2937;
+    }
+
+    /* ダークモード */
+    body.dark {
+      background-color: #1f2937;
+      color: #f3f4f6;
+    }
+
+    /* ヘッダー */
+    header {
       position: fixed;
+      top: 0;
       left: 0;
       right: 0;
-      z-index: 100;
-    }
-
-    #header {
+      z-index: 50;
       display: flex;
-      justify-content: center; /* 中央揃え */
+      justify-content: space-between;
       align-items: center;
-      font-size: 24px;
-    }
-    
-    #header span {
-      flex-grow: 1; /* テキストを拡張して、アイコンを右に押し出す */
-      text-align: center;
-    }
-    
-    #header .fab {
-      color: white;
-      margin-left: 10px;
-      font-size: 24px;
-      position: absolute;
-      right: 50px; /* 右端に配置 */
+      padding: 1rem;
+      background-color: inherit;
+      color: inherit;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    #photo-wrapper {
+    header h1 {
+      font-size: 1.5rem;
+      margin: 0;
+    }
+
+    header a {
+      display: flex;
+      align-items: center;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    header a svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* メインコンテンツ */
+    main {
+      padding-top: 4rem;
+      height: calc(100vh - 4rem);
+      overflow: hidden;
+    }
+
+    /* ポートフォリオセクション */
+    .portfolio {
       display: flex;
       overflow-x: auto;
-      height: calc(100vh - 80px); /* ヘッダーとフッターの高さを引いた値 */
-      position: relative;
-      top: 40px;
-      justify-content: flex-start; /* 追加: 子要素を中央に配置 */
+      scroll-snap-type: x mandatory;
+      height: 100%;
+      scrollbar-width: none; /* Firefox */
     }
 
-    .photo-container {
-      min-width: 80vw;
-      height: 95%; /* 追加: コンテナの高さを100%に設定 */
-      margin-left: 1px;
-      margin-right: 1px;
+    .portfolio::-webkit-scrollbar {
+      display: none; /* Chrome, Safari */
+    }
+
+    .portfolio .photo {
+      scroll-snap-align: center;
+      flex: 0 0 80vw;
+      height: 95%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .portfolio .photo img {
+      max-height: calc(80vh - 120px);
+      max-width: 80%;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      object-fit: contain;
+    }
+
+    /* ブログセクション */
+    .blog {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding: 1rem;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      scrollbar-width: none;
+    }
+
+    .blog::-webkit-scrollbar {
+      display: none;
+    }
+
+    .blog .card {
+      scroll-snap-align: center;
+      flex: 0 0 calc(40vw);
+      height: calc(30vw);
+      margin: 0.5rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center; /* 追加: 子要素を縦方向の中央に配置 */
+      justify-content: space-between;
     }
 
-    .photo {
-      max-height: calc(80vh - 80px - 40px); /* ヘッダー、フッター、説明の高さを引いたビューポートの高さ */
-      max-width: 80%; /* コンテナの幅に合わせる */
-      object-fit: contain; /* 画像のアスペクト比を保持 */
+    .blog .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
     }
 
-    /* ポップアップ表示用のスタイル */
-    .overlay {
+    .blog .card p {
+      flex-grow: 1;
+    }
+
+    .blog .card button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.25rem;
+      background-color: #3b82f6;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .blog .card button:hover {
+      background-color: #2563eb;
+    }
+
+    /* Aboutセクション */
+    .about {
+      padding: 1rem;
+      max-width: 40rem;
+      margin: 0 auto;
+      height: calc(100vh - 4rem);
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .about::-webkit-scrollbar {
       display: none;
+    }
+
+    .about h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    /* ナビゲーション */
+    nav {
       position: fixed;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      z-index: 200;
-    }
-
-    .popup-photo {
-      position: absolute;
+      bottom: 1rem;
       left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      max-width: 90%;
-      max-height: 90%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 9999px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
-    .position-1 { transform: translateY(4%); }
-    .position-2 { transform: translateY(2%); }
-    .position-3 { transform: translateY(0%); }
-    .position-4 { transform: translateY(-2%); }
-    .position-5 { transform: translateY(-4%); }
+    body.dark nav {
+      background: rgba(31, 41, 55, 0.7);
+    }
+
+    nav .button {
+      background: none;
+      border: none;
+      padding: 0.5rem;
+      margin: 0 0.5rem;
+      cursor: pointer;
+      color: inherit;
+      transition: background-color 0.3s, color 0.3s;
+      border-radius: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    nav .button:hover {
+      background-color: rgba(107, 114, 128, 0.5);
+    }
+
+    nav .button.active {
+      background-color: #3b82f6;
+      color: white;
+    }
+
+    nav .button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ボタン */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* レスポンシブ調整 */
+    @media (max-width: 768px) {
+      .blog .card {
+        flex: 0 0 80vw;
+        height: calc(60vw);
+      }
+    }
   </style>
 </head>
-<body>
+<body class="light">
+  <!-- ヘッダー -->
+  <header>
+    <h1>Hal Sakaguchi | Portfolio</h1>
+    <a href="https://www.instagram.com/saka.hal_" target="_blank" rel="noopener noreferrer">
+      <!-- Instagram アイコンのSVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M7.75 2h8.5A5.75 5.75 0 0122 7.75v8.5A5.75 5.75 0 0116.25 22h-8.5A5.75 5.75 0 012 16.25v-8.5A5.75 5.75 0 017.75 2zm0 1.5A4.25 4.25 0 003.5 7.75v8.5A4.25 4.25 0 007.75 20.5h8.5a4.25 4.25 0 004.25-4.25v-8.5A4.25 4.25 0 0016.25 3.5h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10zm0 1.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zm5.25-.75a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0z"/>
+      </svg>
+    </a>
+  </header>
 
-<div id="header">
-  <span>Hal Sakaguchi | Portfolio</span>
-  <a href="https://www.instagram.com/saka.hal_" target="_blank">
-    <i class="fab fa-instagram"></i>
-  </a>
-</div>
+  <!-- メインコンテンツ -->
+  <main>
+    <!-- ポートフォリオセクション -->
+    <section class="portfolio" id="portfolio">
+      <div class="photo">
+        <img src="https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg" alt="残影">
+      </div>
+      <div class="photo">
+        <img src="https://live.staticflickr.com/65535/53309410825_fd5316fca7_k.jpg" alt="title">
+      </div>
+      <div class="photo">
+        <img src="https://live.staticflickr.com/65535/53324907283_21ad32570c_h.jpg" alt="title">
+      </div>
+      <div class="photo">
+        <img src="https://live.staticflickr.com/65535/53325019104_ccc4d609a1_h.jpg" alt="title">
+      </div>
+      <div class="photo">
+        <img src="https://live.staticflickr.com/65535/52901207351_ce67bc5509_k.jpg" alt="title">
+      </div>
+    </section>
 
-<div id="photo-wrapper">
-  <div class="photo-container">
-    <img class="photo" src="https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg" alt="残影">
-  </div>
-  <div class="photo-container">
-    <img class="photo" src="https://live.staticflickr.com/65535/53309410825_fd5316fca7_k.jpg" alt="title">
-  </div>
-  <div class="photo-container">
-    <img class="photo" src="https://live.staticflickr.com/65535/53324907283_21ad32570c_h.jpg" alt="title">
-  </div>
-  <div class="photo-container">
-    <img class="photo" src="https://live.staticflickr.com/65535/53325019104_ccc4d609a1_h.jpg" alt="title">
-  </div>
-  <div class="photo-container">
-    <img class="photo" src="https://live.staticflickr.com/65535/52901207351_ce67bc5509_k.jpg" alt="title">
-  </div>
-  <!-- ...他の写真要素... -->
-</div>
+    <!-- ブログセクション -->
+    <section class="blog" id="blog" style="display: none; background-image: url('https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg');">
+      <div class="card">
+        <h2>工事中</h2>
+        <p>wakaran!</p>
+        <button>Read More</button>
+      </div>
+      <div class="card">
+        <h2>工事中</h2>
+        <p>wakaran!</p>
+        <button>Read More</button>
+      </div>
+      <div class="card">
+        <h2>工事中</h2>
+        <p>wakaran!</p>
+        <button>Read More</button>
+      </div>
+      <div class="card">
+        <h2>工事中</h2>
+        <p>wakaran!</p>
+        <button>Read More</button>
+      </div>
+    </section>
 
-<div class="overlay" id="photo-overlay">
-  <img class="popup-photo" id="popup-photo">
-</div>
+    <!-- Aboutセクション -->
+    <section class="about" id="about" style="display: none;">
+      <h2>About Me</h2>
+      <p>Hi, I am Hal Sakaguchi, a passionate photographer...</p>
+    </section>
+  </main>
 
-<div id="footer">&copy; 2023 Hal Sakaguchi. All Rights Reserved.</div>
+  <!-- ナビゲーション -->
+  <nav>
+    <button class="button active" id="btn-portfolio" aria-label="Portfolio">
+      <!-- Home アイコンのSVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 3l7 6v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V15H10v7a1 1 0 01-1 1H5a1 1 0 01-1-1V9l7-6z"/>
+      </svg>
+    </button>
+    <button class="button" id="btn-blog" aria-label="Blog">
+      <!-- Book アイコンのSVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M19 2H8a2 2 0 00-2 2v16l4-4h9a2 2 0 002-2V4a2 2 0 00-2-2z"/>
+      </svg>
+    </button>
+    <button class="button" id="btn-about" aria-label="About">
+      <!-- User アイコンのSVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V21h19.2v-1.8c0-3.2-6.4-4.8-9.6-4.8z"/>
+      </svg>
+    </button>
+    <button class="button theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
+      <!-- Moon アイコン -->
+      <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
+        <path d="M21.752 15.002A9 9 0 1111.998 2a7 7 0 109.754 13.002z"/>
+      </svg>
+      <!-- Sun アイコン -->
+      <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 4.5V2m0 20v-2.5m5.303-17.303l1.768-1.768m-14.142 0l1.768 1.768M22 12h-2.5M4.5 12H2m17.303 5.303l-1.768 1.768M6.464 6.464l-1.768-1.768"/>
+        <circle cx="12" cy="12" r="5"/>
+      </svg>
+    </button>
+  </nav>
 
-<script>
-  // ポップアップ表示用のイベントリスナーを設定
-  const photos = document.querySelectorAll('.photo'); // `.photo`に変更
-  const overlay = document.getElementById('photo-overlay');
-  const popupPhoto = document.getElementById('popup-photo');
+  <!-- スクリプト -->
+  <script>
+    // ページ間のナビゲーション
+    const btnPortfolio = document.getElementById('btn-portfolio');
+    const btnBlog = document.getElementById('btn-blog');
+    const btnAbout = document.getElementById('btn-about');
+    const sections = {
+      'portfolio': document.getElementById('portfolio'),
+      'blog': document.getElementById('blog'),
+      'about': document.getElementById('about')
+    };
+    let activePage = 'portfolio';
 
-  photos.forEach(photo => {
-    photo.addEventListener('click', function() {
-      popupPhoto.src = this.src; // `this.src`を使用
-      overlay.style.display = 'block';
-    });
-  });
-
-  overlay.addEventListener('click', function() {
-    this.style.display = 'none'; // `this`を使用
-  });
-
-  // 横スクロール機能
-  window.addEventListener('wheel', function(event) {
-    if (event.deltaY != 0) {
-      event.preventDefault();
-      document.getElementById('photo-wrapper').scrollLeft += event.deltaY;
+    function showPage(page) {
+      // 全てのセクションを非表示
+      for (const key in sections) {
+        sections[key].style.display = 'none';
+      }
+      // 指定されたページを表示
+      sections[page].style.display = 'flex';
+      activePage = page;
+      updateActiveButton();
     }
-  }, { passive: false });
 
-  // ランダムなY位置の設定
-  const photoContainers = document.querySelectorAll('.photo-container');
-  const positions = ['position-1', 'position-2', 'position-3', 'position-4', 'position-5'];
+    function updateActiveButton() {
+      // 全てのボタンからactiveクラスを削除
+      document.querySelectorAll('nav .button').forEach(btn => btn.classList.remove('active'));
+      // アクティブなボタンにactiveクラスを追加
+      if (activePage === 'portfolio') {
+        btnPortfolio.classList.add('active');
+      } else if (activePage === 'blog') {
+        btnBlog.classList.add('active');
+      } else if (activePage === 'about') {
+        btnAbout.classList.add('active');
+      }
+    }
 
-  photoContainers.forEach(container => {
-    const randomPosition = positions[Math.floor(Math.random() * positions.length)];
-    container.classList.add(randomPosition);
-  });
+    btnPortfolio.addEventListener('click', () => showPage('portfolio'));
+    btnBlog.addEventListener('click', () => showPage('blog'));
+    btnAbout.addEventListener('click', () => showPage('about'));
 
-</script>
+    // ダークモードの切り替え
+    const themeToggle = document.getElementById('theme-toggle');
+    const iconMoon = document.getElementById('icon-moon');
+    const iconSun = document.getElementById('icon-sun');
 
+    // 初期テーマを設定
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.classList.remove('light', 'dark');
+    document.body.classList.add(savedTheme);
+    updateThemeIcons();
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.body.classList.remove(currentTheme);
+      document.body.classList.add(newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcons();
+    });
+
+    function updateThemeIcons() {
+      if (document.body.classList.contains('dark')) {
+        iconMoon.style.display = 'inline';
+        iconSun.style.display = 'none';
+      } else {
+        iconMoon.style.display = 'none';
+        iconSun.style.display = 'inline';
+      }
+    }
+
+    // 横スクロールの実装（ポートフォリオとブログセクション）
+    function addHorizontalScroll(section) {
+      section.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        section.scrollBy({
+          left: e.deltaY,
+          behavior: 'smooth'
+        });
+      });
+    }
+
+    addHorizontalScroll(sections['portfolio']);
+    addHorizontalScroll(sections['blog']);
+
+    // 初期表示
+    showPage('portfolio');
+  </script>
 </body>
 </html>
