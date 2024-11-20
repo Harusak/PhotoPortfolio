@@ -79,21 +79,23 @@
 
     .portfolio .photo {
       scroll-snap-align: center;
-      flex: 0 0 80vw;
-      height: 95%;
+      flex: 0 0 80vw; /* 幅を80vwに設定 */
+      aspect-ratio: 4 / 3; /* 4:3の比率を維持 */
+      height: auto; /* 高さは比率に基づいて自動調整 */
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
       cursor: pointer; /* クリック可能なカーソル */
+      margin: 0.5rem; /* カード間のマージンを統一 */
     }
 
     .portfolio .photo img {
-      max-height: calc(80vh - 120px);
-      max-width: 80%;
+      width: 100%;
+      height: 100%;
       border-radius: 0.5rem;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      object-fit: contain;
+      object-fit: cover;
       transition: transform 0.3s;
     }
 
@@ -122,9 +124,9 @@
 
     .blog .card {
       scroll-snap-align: center;
-      flex: 0 0 calc(40vw);
-      height: calc(30vw);
-      margin: 0.5rem;
+      flex: 0 0 80vw; /* 幅を80vwに設定 */
+      aspect-ratio: 4 / 3; /* 4:3の比率を維持 */
+      margin: 0.5rem; /* カード間のマージンを統一 */
       padding: 1rem;
       background: rgba(255, 255, 255, 0.5);
       backdrop-filter: blur(10px);
@@ -133,6 +135,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      box-sizing: border-box; /* パディングを含めたボックスサイズ */
     }
 
     .blog .card h2 {
@@ -260,7 +263,7 @@
     @media (max-width: 768px) {
       .blog .card {
         flex: 0 0 80vw;
-        height: calc(60vw);
+        /* aspect-ratioは維持されるため、高さは自動調整 */
       }
     }
   </style>
@@ -481,3 +484,4 @@
   </script>
 </body>
 </html>
+
