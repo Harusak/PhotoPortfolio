@@ -73,7 +73,6 @@
       padding-bottom: 3rem; /* ナビゲーションバーの高さを考慮 */
       display: flex;
       flex-direction: column;
-      height: 100vh;
       overflow: hidden;
     }
 
@@ -82,12 +81,11 @@
       display: flex;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      height: 100%;
-      scrollbar-width: none; /* Firefox */
+      flex: 1 1 auto;
       padding: 1rem 0;
       align-items: center; /* 垂直方向でセンタリング */
       justify-content: flex-start; /* 左寄せ */
-      flex: 1 1 auto;
+      scrollbar-width: none; /* Firefox */
     }
 
     .portfolio::-webkit-scrollbar {
@@ -124,12 +122,14 @@
       display: flex;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      height: 100%;
-      scrollbar-width: none; /* Firefox */
+      flex: 1 1 auto;
       padding: 1rem 0;
       align-items: center; /* 垂直方向でセンタリング */
       justify-content: flex-start; /* 左寄せ */
-      flex: 1 1 auto;
+      scrollbar-width: none; /* Firefox */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
     }
 
     .blog::-webkit-scrollbar {
@@ -562,4 +562,3 @@
   </script>
 </body>
 </html>
-
