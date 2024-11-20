@@ -2,110 +2,228 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ page.title }} | {{ site.title }}</title>
-  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <!-- Tailwind CSS を CDN 経由で読み込み -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- レスポンシブ対応のメタタグ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body.dark {
+      background-color: #313131;
+      color: #f3f4f6;
+    }
+    body.light {
+      background-color: #f3f4f6;
+      color: #1f2937;
+    }
+    #image-container {
+      position: fixed;
+      z-index: 10;
+      transition: all 0.3s ease-in-out;
+    }
+    #image-container.expanded {
+      top: 1rem;
+      left: 1rem;
+      right: 1rem;
+      height: calc(40vh - 2rem);
+    }
+    #image-container.shrinked {
+      top: 1rem;
+      right: 1rem;
+      width: 33.3333%;
+      max-width: 24rem;
+      aspect-ratio: 16 / 9;
+      height: auto;
+    }
+    #image-overlay {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+      transition: background-color 0.3s ease-in-out;
+    }
+    #image-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+    }
+    #image-wrapper.backdrop {
+      backdrop-filter: blur(4px);
+      background-opacity: 0.7;
+    }
+    #content {
+      position: relative;
+      z-index: 0;
+      height: 100%;
+      overflow-y: auto;
+      padding-top: calc(40vh + 1rem);
+      padding-bottom: 4rem;
+    }
+    /* ナビゲーションバーのスタイル */
+    nav {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 9999px;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(4px);
+      z-index: 10;
+    }
+    body.dark nav {
+      background-color: rgba(49, 49, 49, 0.7);
+    }
+    nav .button {
+      padding: 0.5rem;
+      margin: 0 0.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: inherit;
+      background-color: transparent;
+      transition: background-color 0.2s ease-in-out;
+    }
+    nav .button:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+    body.dark nav .button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    nav .button.active {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    body.dark nav .button.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    nav .button svg {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  </style>
 </head>
-<body class="light">
-  <!-- メインコンテンツ -->
-  <div class="h-screen flex flex-col">
-    <main class="flex-1 relative overflow-hidden">
-      <!-- 画像部分 -->
-      <div id="image-container" class="fixed z-10 transition-all duration-300 ease-in-out top-4 left-4 right-4" style="height: calc(40vh - 2rem);">
-        <div id="image-wrapper" class="relative w-full h-full overflow-hidden rounded-3xl shadow-lg cursor-pointer" role="button" tabindex="0" aria-label="Shrink image">
-          <img src="{{ page.image }}" alt="Blog post main image" class="transition-opacity duration-500 ease-in-out object-cover w-full h-full">
-          <div id="image-overlay" class="absolute inset-0 bg-black bg-opacity-30"></div>
-        </div>
+<body id="body" class="h-screen flex flex-col {% if page.theme %}{{ page.theme }}{% else %}light{% endif %}">
+  <main class="flex-1 relative overflow-hidden">
+    <!-- 固定された画像コンテナ -->
+    <div id="image-container" class="expanded">
+      <!-- 画像ラッパー -->
+      <div id="image-wrapper">
+        <!-- 画像 -->
+        <img src="{{ page.image }}" alt="{{ page.title }}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out">
+        <div id="image-overlay"></div>
       </div>
+    </div>
+    <!-- スクロール可能なコンテンツエリア -->
+    <div id="content">
       <!-- 記事コンテンツ -->
-      <div id="content-area" class="relative z-0 h-full overflow-y-auto pt-[calc(40vh+1rem)] pb-16">
-        <article class="bg-white dark:bg-gray-800 p-6 md:p-8 min-h-screen rounded-t-3xl">
-          <div class="prose dark:prose-invert max-w-none">
-            <h1 class="text-3xl md:text-4xl font-bold mb-4">{{ page.title }}</h1>
-            <p class="text-gray-600 dark:text-gray-400 mb-6">Posted on {{ page.date | date: "%B %d, %Y" }} by {{ page.author }}</p>
-            {{ content }}
-          </div>
-        </article>
-      </div>
-    </main>
-    <!-- ナビゲーションバー -->
-    <nav class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center items-center p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg backdrop-filter backdrop-blur-lg bg-opacity-70 dark:bg-opacity-70">
-      <a href="{{ '/' | relative_url }}" class="p-2 mx-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-        <!-- ホームアイコンのSVG -->
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-        </svg>
-      </a>
-      <a href="{{ '/blog/' | relative_url }}" class="p-2 mx-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-        <!-- ブログアイコンのSVG -->
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
-        </svg>
-      </a>
-      <a href="{{ '/about/' | relative_url }}" class="p-2 mx-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-        <!-- アバウトアイコンのSVG -->
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-        </svg>
-      </a>
-    </nav>
-  </div>
+      <article class="bg-stone-50 dark:bg-stone-800 p-6 md:p-8 min-h-screen rounded-t-3xl">
+        <!-- テキストコンテンツ -->
+        <div class="prose dark:prose-invert max-w-none">
+          <h1 class="text-3xl md:text-4xl font-bold mb-4">{{ page.title }}</h1>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">{{ page.date | date: "%Y年%-m月%-d日" }} 投稿者：{{ page.author | default: site.author }}</p>
 
-  <!-- スクリプト -->
+          {{ content }}
+
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <!-- ナビゲーション -->
+  {% include navigation.html %}
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // テーマの切り替え
-      const isDarkMode = localStorage.getItem('theme') === 'dark';
-      if (isDarkMode) {
-        document.body.classList.remove('light');
-        document.body.classList.add('dark');
-      }
+      // 状態変数
+      let isDarkMode = {% if page.theme == 'dark' %}true{% else %}false{% endif %};
+      let isImageExpanded = true;
+      let scrollPosition = 0;
 
-      // 画像の拡大縮小
+      // 要素の取得
+      const body = document.getElementById('body');
       const imageContainer = document.getElementById('image-container');
       const imageWrapper = document.getElementById('image-wrapper');
       const imageOverlay = document.getElementById('image-overlay');
-      const contentArea = document.getElementById('content-area');
-      let isImageExpanded = true;
+      const content = document.getElementById('content');
+      const themeToggleButton = document.getElementById('theme-toggle');
+      const iconMoon = document.getElementById('icon-moon');
+      const iconSun = document.getElementById('icon-sun');
 
-      function toggleImageExpansion() {
-        isImageExpanded = !isImageExpanded;
-        updateImageState();
-      }
+      // ローカルストレージからテーマを取得
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      isDarkMode = (savedTheme === 'dark');
+      updateTheme();
 
-      function updateImageState() {
-        if (isImageExpanded) {
-          imageContainer.classList.remove('top-4', 'right-4', 'w-1/3', 'max-w-sm');
-          imageContainer.classList.add('top-4', 'left-4', 'right-4');
-          imageContainer.style.height = 'calc(40vh - 2rem)';
-          imageContainer.style.aspectRatio = 'auto';
-
-          imageWrapper.classList.remove('backdrop-filter', 'backdrop-blur-sm', 'bg-opacity-70');
-          imageOverlay.classList.remove('bg-opacity-10');
-          imageOverlay.classList.add('bg-opacity-30');
-          imageWrapper.setAttribute('aria-label', 'Shrink image');
-        } else {
-          imageContainer.classList.remove('top-4', 'left-4', 'right-4');
-          imageContainer.classList.add('top-4', 'right-4', 'w-1/3', 'max-w-sm');
-          imageContainer.style.height = 'auto';
-          imageContainer.style.aspectRatio = '16 / 9'; // 画像のアスペクト比
-
-          imageWrapper.classList.add('backdrop-filter', 'backdrop-blur-sm', 'bg-opacity-70');
-          imageOverlay.classList.remove('bg-opacity-30');
-          imageOverlay.classList.add('bg-opacity-10');
-          imageWrapper.setAttribute('aria-label', 'Expand image');
-        }
-      }
-
-      imageWrapper.addEventListener('click', toggleImageExpansion);
-
-      // スクロール時の画像縮小
-      contentArea.addEventListener('scroll', function() {
-        if (contentArea.scrollTop > 100 && isImageExpanded) {
+      // スクロールイベントのリスナー
+      content.addEventListener('scroll', function() {
+        scrollPosition = content.scrollTop;
+        if (scrollPosition > 100 && isImageExpanded) {
           isImageExpanded = false;
-          updateImageState();
+          updateImageContainer();
         }
       });
+
+      // 画像クリック時のイベントリスナー
+      imageWrapper.addEventListener('click', function() {
+        isImageExpanded = !isImageExpanded;
+        updateImageContainer();
+      });
+
+      // テーマを更新する関数
+      function updateTheme() {
+        if (isDarkMode) {
+          body.classList.remove('light');
+          body.classList.add('dark');
+          iconMoon.style.display = 'none';
+          iconSun.style.display = 'block';
+        } else {
+          body.classList.remove('dark');
+          body.classList.add('light');
+          iconMoon.style.display = 'block';
+          iconSun.style.display = 'none';
+        }
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+      }
+
+      // テーマを切り替える関数
+      function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        updateTheme();
+      }
+
+      // 画像コンテナを更新する関数
+      function updateImageContainer() {
+        if (isImageExpanded) {
+          imageContainer.classList.remove('shrinked');
+          imageContainer.classList.add('expanded');
+          imageOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+          imageWrapper.classList.remove('backdrop');
+        } else {
+          imageContainer.classList.remove('expanded');
+          imageContainer.classList.add('shrinked');
+          imageOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+          imageWrapper.classList.add('backdrop');
+          imageContainer.style.aspectRatio = '16 / 9';
+          imageContainer.style.height = 'auto';
+        }
+      }
+
+      // 初期化
+      updateImageContainer();
+
+      // テーマ切り替えボタンのイベントリスナー
+      if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', toggleTheme);
+      }
     });
   </script>
 </body>
