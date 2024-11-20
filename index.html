@@ -20,7 +20,7 @@
 
     /* ダークモード */
     body.dark {
-      background-color: #1f2937;
+      background-color: #2b2b2b;
       color: #f3f4f6;
     }
 
@@ -71,6 +71,9 @@
       scroll-snap-type: x mandatory;
       height: 100%;
       scrollbar-width: none; /* Firefox */
+      padding: 1rem;
+      align-items: center; /* 垂直方向でセンタリング */
+      justify-content: flex-start; /* 左寄せ */
     }
 
     .portfolio::-webkit-scrollbar {
@@ -86,6 +89,7 @@
       justify-content: center;
       position: relative;
       cursor: pointer; /* クリック可能なカーソル */
+      margin: 0 0.5rem;
     }
 
     .portfolio .photo img {
@@ -112,6 +116,8 @@
       background-position: center;
       background-repeat: no-repeat;
       padding: 1rem;
+      align-items: center; /* 垂直方向でセンタリング */
+      justify-content: flex-start; /* 左寄せ */
     }
 
     .blog::-webkit-scrollbar {
@@ -120,11 +126,12 @@
 
     .blog .card {
       scroll-snap-align: center;
-      flex: 0 0 80vw; /* ポートフォリオと同じ幅 */
-      height: 95%; /* ポートフォリオと同じ高さ */
+      flex: 0 0 80vw; /* 幅80% */
+      aspect-ratio: 4 / 3; /* 固定4:3アスペクト比 */
+      max-width: 600px; /* 最大幅を600pxに設定 */
       margin: 0 0.5rem;
       padding: 1rem;
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.5);
       backdrop-filter: blur(10px);
       border-radius: 0.5rem;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -133,6 +140,28 @@
       justify-content: space-between;
       cursor: pointer; /* クリック可能なカーソル */
       transition: transform 0.3s;
+      position: relative; /* オーバーレイ用 */
+      background-size: cover; /* 背景画像をカバー */
+      background-position: center; /* 背景画像を中央に */
+      box-sizing: border-box; /* パディングを幅に含める */
+    }
+
+    .blog .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4); /* 半透明の黒オーバーレイ */
+      border-radius: 0.5rem;
+      pointer-events: none; /* オーバーレイをクリック不可に */
+    }
+
+    .blog .card > * {
+      position: relative; /* オーバーレイの上に表示 */
+      z-index: 1;
+      color: white; /* テキスト色を白に */
     }
 
     .blog .card:hover {
@@ -221,7 +250,7 @@
     }
 
     nav .button.active {
-      background-color: #3b82f6;
+      background-color: #7c98ab;
       color: white;
     }
 
@@ -263,8 +292,9 @@
     /* レスポンシブ調整 */
     @media (max-width: 768px) {
       .blog .card {
-        flex: 0 0 80vw;
-        height: 60vw;
+        flex: 0 0 80vw; /* 幅80% */
+        aspect-ratio: 4 / 3; /* 固定4:3アスペクト比 */
+        max-width: 500px; /* 最大幅を500pxに調整 */
       }
     }
   </style>
@@ -304,24 +334,24 @@
 
     <!-- ブログセクション -->
     <section class="blog" id="blog" style="display: none; background-image: url('https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg');">
-      <div class="card">
-        <h2>工事中</h2>
-        <p>wakaran!</p>
+      <div class="card" style="background-image: url('https://via.placeholder.com/800x600');">
+        <h2>ブログタイトル1</h2>
+        <p>ブログの抜粋1...</p>
         <button>Read More</button>
       </div>
-      <div class="card">
-        <h2>工事中</h2>
-        <p>wakaran!</p>
+      <div class="card" style="background-image: url('https://via.placeholder.com/800x600');">
+        <h2>ブログタイトル2</h2>
+        <p>ブログの抜粋2...</p>
         <button>Read More</button>
       </div>
-      <div class="card">
-        <h2>工事中</h2>
-        <p>wakaran!</p>
+      <div class="card" style="background-image: url('https://via.placeholder.com/800x600');">
+        <h2>ブログタイトル3</h2>
+        <p>ブログの抜粋3...</p>
         <button>Read More</button>
       </div>
-      <div class="card">
-        <h2>工事中</h2>
-        <p>wakaran!</p>
+      <div class="card" style="background-image: url('https://via.placeholder.com/800x600');">
+        <h2>ブログタイトル4</h2>
+        <p>ブログの抜粋4...</p>
         <button>Read More</button>
       </div>
     </section>
@@ -335,19 +365,19 @@
 
   <!-- ナビゲーション -->
   <nav>
-    <button class="button active" id="btn-portfolio" aria-label="Portfolio">
+    <button class="button active" id="btn-portfolio" aria-label="Portfolio" aria-pressed="true">
       <!-- Home アイコンのSVG -->
       <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
         <path d="M12 3l7 6v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V15H10v7a1 1 0 01-1 1H5a1 1 0 01-1-1V9l7-6z"/>
       </svg>
     </button>
-    <button class="button" id="btn-blog" aria-label="Blog">
+    <button class="button" id="btn-blog" aria-label="Blog" aria-pressed="false">
       <!-- Book アイコンのSVG -->
       <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
         <path d="M19 2H8a2 2 0 00-2 2v16l4-4h9a2 2 0 002-2V4a2 2 0 00-2-2z"/>
       </svg>
     </button>
-    <button class="button" id="btn-about" aria-label="About">
+    <button class="button" id="btn-about" aria-label="About" aria-pressed="false">
       <!-- User アイコンのSVG -->
       <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
         <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V21h19.2v-1.8c0-3.2-6.4-4.8-9.6-4.8z"/>
@@ -367,7 +397,7 @@
   </nav>
 
   <!-- ポップアップオーバーレイ -->
-  <div class="overlay" id="photo-overlay">
+  <div class="overlay" id="photo-overlay" role="dialog" aria-modal="true">
     <img class="popup-photo" id="popup-photo" alt="拡大表示画像">
   </div>
 
@@ -476,14 +506,9 @@
 
     // ブログカードにクリックイベントを設定
     blogCards.forEach(card => {
-      // カード内の画像がないため、デフォルトの画像や指定した画像を表示するようにします。
-      // ここではカードの背景画像をポップアップとして表示する例を示します。
-      // 必要に応じて画像URLをデータ属性などで指定してください。
-
+      // カード内の背景画像をポップアップとして表示
       card.addEventListener('click', function() {
-        // 例として、背景画像URLを取得
         const bgImage = window.getComputedStyle(this).backgroundImage;
-        // URLの抽出
         const urlMatch = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
         if (urlMatch && urlMatch[1]) {
           popupPhoto.src = urlMatch[1];
@@ -505,3 +530,4 @@
   </script>
 </body>
 </html>
+
