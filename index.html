@@ -1497,11 +1497,16 @@
 
     // タッチイベント - 3D効果
     let touchActive = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
 
     overlay.addEventListener('touchstart', function(e) {
       // 閉じるボタン以外でタッチした場合
       if (e.target !== closeButton && !closeButton.contains(e.target)) {
         touchActive = true;
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
         e.preventDefault(); // デフォルト動作を防止
       }
     }, { passive: false }); // passive: falseを追加してpreventDefaultを有効化
@@ -1512,13 +1517,16 @@
       e.preventDefault(); // スクロール防止
       const touch = e.touches[0];
 
+      // 初期タッチ位置からの移動距離を計算
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+
+      // 画像のサイズを基準に正規化（-1 ~ 1の範囲に）
       const rect = popupPhoto.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      const normalizedX = deltaX / (rect.width / 2);
+      const normalizedY = deltaY / (rect.height / 2);
 
-      const normalizedX = (touch.clientX - centerX) / (rect.width / 2);
-      const normalizedY = (touch.clientY - centerY) / (rect.height / 2);
-
+      // 角度を計算（正規化された値に基づく）
       const rotateY = (normalizedX * MAX_ROTATION).toFixed(2);
       const rotateX = (-normalizedY * MAX_ROTATION).toFixed(2);
       const perspective = rect.width * 1.2;
@@ -1526,6 +1534,7 @@
       popupPhoto.style.transform =
         `translate(-50%, -50%) perspective(${perspective}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
 
+      // 光沢位置も移動距離に基づいて更新
       const lightX = ((normalizedX + 1) / 2 * 100).toFixed(2);
       const lightY = ((normalizedY + 1) / 2 * 100).toFixed(2);
       popupPhoto.style.setProperty('--light-x', `${lightX}%`);
@@ -1535,7 +1544,11 @@
     overlay.addEventListener('touchend', function(e) {
       if (touchActive) {
         touchActive = false;
+        touchStartX = 0;
+        touchStartY = 0;
         popupPhoto.style.transform = 'translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg)';
+        popupPhoto.style.removeProperty('--light-x');
+        popupPhoto.style.removeProperty('--light-y');
       }
       // 閉じる処理は削除（×ボタンのみで閉じる）
     });
