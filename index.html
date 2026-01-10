@@ -507,13 +507,13 @@
     });
     // カテゴリーフィルタリング機能
     const navButtons = document.querySelectorAll('.category-nav button');
-    const photos = document.querySelectorAll('.portfolio .photo');
+    const photoElements = document.querySelectorAll('.portfolio .photo');
     navButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         navButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const cat = btn.dataset.category;
-        photos.forEach(photo => {
+        photoElements.forEach(photo => {
           const matches = cat === 'all'
             || photo.dataset.year === cat
             || photo.dataset.genre === cat;
