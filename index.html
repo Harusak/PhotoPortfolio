@@ -904,14 +904,15 @@
       background: linear-gradient(
         115deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.05) 20%,
-        rgba(102, 126, 234, 0.08) 40%,
-        rgba(240, 147, 251, 0.08) 60%,
-        rgba(255, 255, 255, 0.05) 80%,
+        rgba(0, 231, 255, 0.10) 20%,
+        rgba(102, 126, 234, 0.15) 40%,
+        rgba(235, 139, 255, 0.15) 60%,
+        rgba(0, 231, 255, 0.10) 80%,
         transparent 100%
       );
       opacity: 0;
-      mix-blend-mode: overlay;
+      mix-blend-mode: soft-light;
+      filter: url(#paper-grain);
       pointer-events: none;
       transition: opacity 0.3s ease;
     }
@@ -928,11 +929,12 @@
       border-radius: inherit;
       background: radial-gradient(
         circle at var(--light-x, 50%) var(--light-y, 50%),
-        rgba(255, 255, 255, 0.15) 0%,
-        rgba(255, 255, 255, 0.08) 20%,
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(255, 255, 255, 0.15) 20%,
         transparent 50%
       );
       opacity: 0;
+      mix-blend-mode: soft-light;
       pointer-events: none;
       transition: opacity 0.2s ease;
     }
@@ -946,13 +948,13 @@
       background: linear-gradient(
         115deg,
         transparent 0%,
-        rgba(168, 181, 255, 0.06) 20%,
-        rgba(196, 157, 255, 0.06) 40%,
-        rgba(255, 179, 217, 0.06) 60%,
-        rgba(168, 181, 255, 0.06) 80%,
+        rgba(0, 231, 255, 0.08) 20%,
+        rgba(168, 181, 255, 0.12) 40%,
+        rgba(235, 139, 255, 0.12) 60%,
+        rgba(0, 231, 255, 0.08) 80%,
         transparent 100%
       );
-      mix-blend-mode: screen;
+      mix-blend-mode: soft-light;
     }
 
     /* 閉じるボタン */
@@ -1076,7 +1078,7 @@
       }
 
       .popup-photo::before {
-        opacity: 0.7; /* モバイルでは控えめに */
+        opacity: 0.85; /* モバイルでは控えめに */
       }
 
       .close-button {
@@ -1108,7 +1110,7 @@
       }
 
       .popup-photo::before {
-        opacity: 0.5; /* 小画面ではさらに抑制 */
+        opacity: 0.65; /* 小画面ではさらに抑制 */
       }
     }
   </style>
@@ -1313,6 +1315,19 @@
       </svg>
     </button>
   </nav>
+
+  <!-- Hidden SVG for noise filter -->
+  <svg style="position: absolute; width: 0; height: 0; opacity: 0;" aria-hidden="true">
+    <defs>
+      <filter id="paper-grain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="2" />
+        <feColorMatrix type="saturate" values="0" />
+        <feComponentTransfer>
+          <feFuncA type="discrete" tableValues="0 0.03 0.06" />
+        </feComponentTransfer>
+      </filter>
+    </defs>
+  </svg>
 
   <!-- ポップアップオーバーレイ -->
   <div class="overlay" id="photo-overlay">
