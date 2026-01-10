@@ -891,10 +891,72 @@
         0 0 0 1px rgba(255, 255, 255, 0.1);
       animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       cursor: default;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease;
+    }
+
+    /* ホログラムグラデーション層 */
+    .popup-photo::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(
+        115deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(102, 126, 234, 0.08) 40%,
+        rgba(240, 147, 251, 0.08) 60%,
+        rgba(255, 255, 255, 0.05) 80%,
+        transparent 100%
+      );
+      opacity: 0;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .popup-photo:hover::before {
+      opacity: 1;
+    }
+
+    /* 光沢効果層 */
+    .popup-photo::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(
+        circle at var(--light-x, 50%) var(--light-y, 50%),
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.08) 20%,
+        transparent 50%
+      );
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .popup-photo:hover::after {
+      opacity: 1;
+    }
+
+    /* ダークモード対応 */
+    body.dark .popup-photo::before {
+      background: linear-gradient(
+        115deg,
+        transparent 0%,
+        rgba(168, 181, 255, 0.06) 20%,
+        rgba(196, 157, 255, 0.06) 40%,
+        rgba(255, 179, 217, 0.06) 60%,
+        rgba(168, 181, 255, 0.06) 80%,
+        transparent 100%
+      );
+      mix-blend-mode: screen;
     }
 
     @keyframes popIn {
-      to { transform: translate(-50%, -50%) scale(1); }
+      to { transform: translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1); }
     }
 
     /* レスポンシブ調整 */
@@ -967,6 +1029,10 @@
         flex: 0 0 85vw;
         height: calc(65vw);
       }
+
+      .popup-photo::before {
+        opacity: 0.7; /* モバイルでは控えめに */
+      }
     }
 
     @media (max-width: 480px) {
@@ -982,6 +1048,10 @@
       .category-nav button {
         padding: 0.5rem 0.75rem;
         font-size: 0.75rem;
+      }
+
+      .popup-photo::before {
+        opacity: 0.5; /* 小画面ではさらに抑制 */
       }
     }
   </style>
@@ -1280,6 +1350,9 @@
     // 初期表示
     showPage('portfolio');
 
+    // 3D効果用の定数
+    const MAX_ROTATION = 15; // 最大傾斜角度（度）
+
     // 画像ポップアップ機能の実装
     const photos = document.querySelectorAll('.portfolio .photo img'); // ポートフォリオ内の画像要素を取得
     const overlay = document.getElementById('photo-overlay'); // オーバーレイ要素を取得
@@ -1291,6 +1364,8 @@
         popupPhoto.src = this.src; // クリックした画像のsrcをポップアップ画像に設定
         popupPhoto.alt = this.alt; // alt属性も設定
         overlay.style.display = 'block'; // オーバーレイを表示
+        // 初期transformを設定
+        popupPhoto.style.transform = 'translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg)';
       });
     });
 
@@ -1303,6 +1378,88 @@
     popupPhoto.addEventListener('click', function(e) {
       e.stopPropagation(); // 画像自体のクリックはオーバーレイのクリックイベントに伝播させない
     });
+
+    // マウスムーブイベント - 3D効果
+    overlay.addEventListener('mousemove', function(e) {
+      if (overlay.style.display !== 'block') return;
+
+      const rect = popupPhoto.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      // -1〜1に正規化
+      const normalizedX = (e.clientX - centerX) / (rect.width / 2);
+      const normalizedY = (e.clientY - centerY) / (rect.height / 2);
+
+      // 回転角度を計算
+      const rotateY = (normalizedX * MAX_ROTATION).toFixed(2);
+      const rotateX = (-normalizedY * MAX_ROTATION).toFixed(2);
+      const perspective = rect.width * 1.2;
+
+      // transformを適用
+      popupPhoto.style.transform =
+        `translate(-50%, -50%) perspective(${perspective}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+      // 光沢位置を更新
+      const lightX = ((normalizedX + 1) / 2 * 100).toFixed(2);
+      const lightY = ((normalizedY + 1) / 2 * 100).toFixed(2);
+      popupPhoto.style.setProperty('--light-x', `${lightX}%`);
+      popupPhoto.style.setProperty('--light-y', `${lightY}%`);
+    });
+
+    // マウスリーブ時にリセット
+    overlay.addEventListener('mouseleave', function() {
+      popupPhoto.style.transform = 'translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg)';
+      popupPhoto.style.removeProperty('--light-x');
+      popupPhoto.style.removeProperty('--light-y');
+    });
+
+    // タッチイベント - 3D効果
+    let touchActive = false;
+
+    overlay.addEventListener('touchstart', function(e) {
+      if (e.target === popupPhoto || popupPhoto.contains(e.target)) {
+        touchActive = true;
+        e.stopPropagation();
+      }
+    });
+
+    overlay.addEventListener('touchmove', function(e) {
+      if (!touchActive || overlay.style.display !== 'block') return;
+
+      e.preventDefault(); // スクロール防止
+      const touch = e.touches[0];
+
+      const rect = popupPhoto.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const normalizedX = (touch.clientX - centerX) / (rect.width / 2);
+      const normalizedY = (touch.clientY - centerY) / (rect.height / 2);
+
+      const rotateY = (normalizedX * MAX_ROTATION).toFixed(2);
+      const rotateX = (-normalizedY * MAX_ROTATION).toFixed(2);
+      const perspective = rect.width * 1.2;
+
+      popupPhoto.style.transform =
+        `translate(-50%, -50%) perspective(${perspective}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+      const lightX = ((normalizedX + 1) / 2 * 100).toFixed(2);
+      const lightY = ((normalizedY + 1) / 2 * 100).toFixed(2);
+      popupPhoto.style.setProperty('--light-x', `${lightX}%`);
+      popupPhoto.style.setProperty('--light-y', `${lightY}%`);
+    });
+
+    overlay.addEventListener('touchend', function(e) {
+      if (touchActive) {
+        touchActive = false;
+        popupPhoto.style.transform = 'translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg)';
+      }
+      if (e.target === overlay) {
+        overlay.style.display = 'none';
+      }
+    });
+
     // カテゴリーフィルタリング機能
     const filterToggle = document.querySelector('.category-filter-toggle');
     const categoryNav = document.querySelector('.category-nav');
