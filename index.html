@@ -882,14 +882,14 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, -50%) scale(0.95);
+      transform: translate(-50%, -50%) scale(1);
       max-width: 90vw;
       max-height: 90vh;
       border-radius: 1rem;
       box-shadow:
         0 40px 100px rgba(0, 0, 0, 0.5),
         0 0 0 1px rgba(255, 255, 255, 0.1);
-      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      /* animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; */ /* 削除：3D操作を即座に有効化 */
       cursor: default;
       transform-style: preserve-3d;
       transition: transform 0.1s ease;
@@ -955,8 +955,53 @@
       mix-blend-mode: screen;
     }
 
-    @keyframes popIn {
-      to { transform: translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1); }
+    /* 閉じるボタン */
+    .close-button {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      z-index: 10001;
+      padding: 0;
+    }
+
+    .close-button:hover {
+      background: rgba(0, 0, 0, 0.7);
+      transform: scale(1.1);
+    }
+
+    .close-button:active {
+      transform: scale(0.95);
+    }
+
+    .close-button svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    body.dark .close-button {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+    }
+
+    body.dark .close-button:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     /* レスポンシブ調整 */
@@ -1032,6 +1077,18 @@
 
       .popup-photo::before {
         opacity: 0.7; /* モバイルでは控えめに */
+      }
+
+      .close-button {
+        top: 1rem;
+        right: 1rem;
+        width: 2.25rem;
+        height: 2.25rem;
+      }
+
+      .close-button svg {
+        width: 1.125rem;
+        height: 1.125rem;
       }
     }
 
@@ -1260,6 +1317,12 @@
   <!-- ポップアップオーバーレイ -->
   <div class="overlay" id="photo-overlay">
     <img class="popup-photo" id="popup-photo" alt="拡大表示画像">
+    <button class="close-button" id="close-popup" aria-label="閉じる">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
   </div>
 
   <!-- スクリプト -->
@@ -1364,19 +1427,22 @@
         popupPhoto.src = this.src; // クリックした画像のsrcをポップアップ画像に設定
         popupPhoto.alt = this.alt; // alt属性も設定
         overlay.style.display = 'block'; // オーバーレイを表示
-        // 初期transformを設定
-        popupPhoto.style.transform = 'translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg)';
+        // アニメーションなしで即座に初期transformを設定
+        popupPhoto.style.transform = 'translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+        // カスタムプロパティもリセット
+        popupPhoto.style.removeProperty('--light-x');
+        popupPhoto.style.removeProperty('--light-y');
       });
     });
 
-    // オーバーレイをクリックすると非表示にする
-    overlay.addEventListener('click', function() {
-      this.style.display = 'none'; // オーバーレイを非表示
-    });
-
-    // スマートフォンなどタッチデバイス対応（オーバーレイ外をタップしても閉じる）
-    popupPhoto.addEventListener('click', function(e) {
-      e.stopPropagation(); // 画像自体のクリックはオーバーレイのクリックイベントに伝播させない
+    // 閉じるボタンのイベント
+    const closeButton = document.getElementById('close-popup');
+    closeButton.addEventListener('click', function() {
+      overlay.style.display = 'none';
+      // リセット
+      popupPhoto.style.transform = 'translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg)';
+      popupPhoto.style.removeProperty('--light-x');
+      popupPhoto.style.removeProperty('--light-y');
     });
 
     // マウスムーブイベント - 3D効果
@@ -1418,11 +1484,12 @@
     let touchActive = false;
 
     overlay.addEventListener('touchstart', function(e) {
-      if (e.target === popupPhoto || popupPhoto.contains(e.target)) {
+      // 閉じるボタン以外でタッチした場合
+      if (e.target !== closeButton && !closeButton.contains(e.target)) {
         touchActive = true;
-        e.stopPropagation();
+        e.preventDefault(); // デフォルト動作を防止
       }
-    });
+    }, { passive: false }); // passive: falseを追加してpreventDefaultを有効化
 
     overlay.addEventListener('touchmove', function(e) {
       if (!touchActive || overlay.style.display !== 'block') return;
@@ -1455,9 +1522,7 @@
         touchActive = false;
         popupPhoto.style.transform = 'translate(-50%, -50%) perspective(1000px) rotateX(0deg) rotateY(0deg)';
       }
-      if (e.target === overlay) {
-        overlay.style.display = 'none';
-      }
+      // 閉じる処理は削除（×ボタンのみで閉じる）
     });
 
     // カテゴリーフィルタリング機能
