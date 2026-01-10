@@ -6,24 +6,102 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Hal Sakaguchi | Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     /* 基本スタイル */
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      transition: background-color 0.3s, color 0.3s;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1), color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 抽象的なアニメーション背景 */
+    .abstract-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+      transition: opacity 0.8s ease;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      animation: float 20s infinite ease-in-out;
+      mix-blend-mode: multiply;
+    }
+
+    body.dark .blob {
+      mix-blend-mode: screen;
+    }
+
+    .blob:nth-child(1) {
+      width: 500px;
+      height: 500px;
+      top: -10%;
+      left: -10%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      animation-delay: 0s;
+    }
+
+    .blob:nth-child(2) {
+      width: 400px;
+      height: 400px;
+      top: 50%;
+      right: -5%;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      animation-delay: -7s;
+      animation-duration: 25s;
+    }
+
+    .blob:nth-child(3) {
+      width: 450px;
+      height: 450px;
+      bottom: -10%;
+      left: 30%;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      animation-delay: -14s;
+      animation-duration: 30s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+      25% { transform: translate(50px, 50px) scale(1.1) rotate(90deg); }
+      50% { transform: translate(-30px, 80px) scale(0.9) rotate(180deg); }
+      75% { transform: translate(70px, -50px) scale(1.05) rotate(270deg); }
     }
 
     /* ライトモード */
     body.light {
-      background-color: #f3f4f6;
-      color: #1f2937;
+      background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+      color: #2d3748;
+    }
+
+    body.light .abstract-background {
+      opacity: 0.6;
     }
 
     /* ダークモード */
     body.dark {
-      background-color: #313131;
-      color: #f3f4f6;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+      color: #e2e8f0;
+    }
+
+    body.dark .abstract-background {
+      opacity: 0.4;
     }
 
     /* ヘッダー */
@@ -32,19 +110,49 @@
       top: 0;
       left: 0;
       right: 0;
-      z-index: 50;
+      z-index: 100;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem;
-      background-color: inherit;
-      color: inherit;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 1.5rem 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    body.dark header {
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     header h1 {
       font-size: 1.5rem;
+      font-weight: 300;
       margin: 0;
+      letter-spacing: 0.05em;
+      font-family: 'Cormorant Garamond', serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 10s ease infinite;
+      background-size: 200% 200%;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    body.dark header h1 {
+      background: linear-gradient(135deg, #a8b5ff 0%, #c49dff 50%, #ffb3d9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      background-size: 200% 200%;
     }
 
     header a {
@@ -52,6 +160,24 @@
       align-items: center;
       color: inherit;
       text-decoration: none;
+      padding: 0.5rem;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    header a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    body.dark header a {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark header a:hover {
+      background: rgba(255, 255, 255, 0.15);
     }
 
     header a svg {
@@ -61,9 +187,11 @@
 
     /* メインコンテンツ */
     main {
-      padding-top: 4rem;
-      height: calc(100vh - 4rem);
+      padding-top: 5.5rem;
+      height: calc(100vh - 5.5rem);
       overflow: hidden;
+      position: relative;
+      z-index: 1;
     }
 
     /* ポートフォリオセクション */
@@ -72,35 +200,78 @@
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       height: 100%;
-      scrollbar-width: none; /* Firefox */
+      scrollbar-width: none;
+      gap: 15rem;
+      padding: 2rem 10vw;
+      align-items: center;
+      scroll-behavior: smooth;
     }
 
     .portfolio::-webkit-scrollbar {
-      display: none; /* Chrome, Safari */
+      display: none;
     }
 
     .portfolio .photo {
       scroll-snap-align: center;
-      flex: 0 0 80vw;
-      height: 95%;
+      flex: 0 0 min(70vw, 900px);
+      height: 85%;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      cursor: pointer; /* クリック可能なカーソル */
+      cursor: pointer;
+      perspective: 1000px;
+    }
+
+    .portfolio .photo::before {
+      content: '';
+      position: absolute;
+      inset: -20px;
+      background: linear-gradient(135deg,
+        rgba(102, 126, 234, 0.1) 0%,
+        rgba(118, 75, 162, 0.1) 50%,
+        rgba(240, 147, 251, 0.1) 100%);
+      border-radius: 1.5rem;
+      filter: blur(30px);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: -1;
+    }
+
+    .portfolio .photo:hover::before {
+      opacity: 1;
     }
 
     .portfolio .photo img {
-      max-height: calc(80vh - 120px);
-      max-width: 80%;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      max-height: 100%;
+      max-width: 100%;
+      border-radius: 1rem;
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
       object-fit: contain;
-      transition: transform 0.3s;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
+    }
+
+    body.dark .portfolio .photo img {
+      box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
     }
 
     .portfolio .photo img:hover {
-      transform: scale(1.05); /* ホバー時に少し拡大 */
+      transform: scale(1.03) translateY(-10px);
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+
+    body.dark .portfolio .photo img:hover {
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
     }
 
     /* ブログセクション */
@@ -211,52 +382,472 @@
       margin-bottom: 1rem;
     }
 
-    /* ナビゲーション */
+    /* カテゴリーナビゲーション */
+    .category-filter-wrapper {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      z-index: 50;
+    }
+
+    .category-filter-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.75rem 1rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: inherit;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark .category-filter-toggle {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .category-filter-toggle:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    body.dark .category-filter-toggle:hover {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .category-filter-toggle svg {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.3s ease;
+    }
+
+    .category-filter-toggle.open svg {
+      transform: rotate(180deg);
+    }
+
+    .category-nav {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      padding: 0.5rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      min-width: 150px;
+    }
+
+    .category-nav.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    body.dark .category-nav {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .category-nav button {
+      background: transparent;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: inherit;
+      transition: all 0.2s ease;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .category-nav button:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    body.dark .category-nav button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .category-nav button.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    body.dark .category-nav button.active {
+      background: linear-gradient(135deg, #a8b5ff 0%, #c49dff 100%);
+    }
+
+    /* ナビゲーション - 多層ガラスモーフィング + 動的グラデーション + オーラ効果 */
     nav {
       position: fixed;
-      bottom: 1rem;
+      bottom: 2rem;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 0.5rem 1rem;
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(10px);
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
       border-radius: 9999px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 100;
+      isolation: isolate; /* 新しいスタッキングコンテキスト */
+    }
+
+    /* 第1層：外側のオーラグロー */
+    nav::before {
+      content: '';
+      position: absolute;
+      inset: -30px;
+      background: radial-gradient(
+        circle at 30% 50%,
+        rgba(102, 126, 234, 0.4) 0%,
+        rgba(118, 75, 162, 0.3) 30%,
+        rgba(240, 147, 251, 0.2) 60%,
+        transparent 80%
+      );
+      border-radius: 9999px;
+      filter: blur(25px);
+      opacity: 0.6;
+      animation: aurarRotate 15s linear infinite, auraPulse 4s ease-in-out infinite;
+      z-index: -3;
+    }
+
+    body.dark nav::before {
+      background: radial-gradient(
+        circle at 30% 50%,
+        rgba(168, 181, 255, 0.35) 0%,
+        rgba(196, 157, 255, 0.25) 30%,
+        rgba(255, 179, 217, 0.18) 60%,
+        transparent 80%
+      );
+    }
+
+    /* 第2層：中間のガラス層 */
+    nav::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.05) 50%,
+        rgba(255, 255, 255, 0.15) 100%
+      );
+      border-radius: 9999px;
+      backdrop-filter: blur(15px) saturate(150%);
+      -webkit-backdrop-filter: blur(15px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+      z-index: -2;
+      animation: shimmer 8s ease-in-out infinite;
+    }
+
+    body.dark nav::after {
+      background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.02) 50%,
+        rgba(255, 255, 255, 0.1) 100%
+      );
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    /* 第3層：動的グラデーション背景（内側） */
+    nav {
+      background:
+        linear-gradient(135deg,
+          rgba(102, 126, 234, 0.08) 0%,
+          rgba(118, 75, 162, 0.06) 25%,
+          rgba(240, 147, 251, 0.08) 50%,
+          rgba(79, 172, 254, 0.06) 75%,
+          rgba(102, 126, 234, 0.08) 100%
+        );
+      background-size: 300% 300%;
+      backdrop-filter: blur(25px) saturate(200%);
+      -webkit-backdrop-filter: blur(25px) saturate(200%);
+      animation: gradientFlow 12s ease infinite;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     }
 
     body.dark nav {
-      background: rgba(31, 41, 55, 0.7);
+      background:
+        linear-gradient(135deg,
+          rgba(168, 181, 255, 0.12) 0%,
+          rgba(196, 157, 255, 0.09) 25%,
+          rgba(255, 179, 217, 0.12) 50%,
+          rgba(75, 192, 255, 0.09) 75%,
+          rgba(168, 181, 255, 0.12) 100%
+        );
+      background-size: 300% 300%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 動的グラデーションアニメーション */
+    @keyframes gradientFlow {
+      0%, 100% {
+        background-position: 0% 50%;
+      }
+      33% {
+        background-position: 100% 50%;
+      }
+      66% {
+        background-position: 50% 100%;
+      }
+    }
+
+    /* オーラの回転アニメーション */
+    @keyframes aurarRotate {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+
+    /* オーラの脈動アニメーション */
+    @keyframes auraPulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 0.9; }
+    }
+
+    /* シマー効果 */
+    @keyframes shimmer {
+      0%, 100% {
+        background-position: 0% 50%;
+        opacity: 1;
+      }
+      50% {
+        background-position: 100% 50%;
+        opacity: 0.85;
+      }
     }
 
     nav .button {
-      background: none;
+      background: transparent;
       border: none;
-      padding: 0.5rem;
-      margin: 0 0.5rem;
+      padding: 0.75rem;
       cursor: pointer;
       color: inherit;
-      transition: background-color 0.3s, color 0.3s;
-      border-radius: 0.25rem;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      isolation: isolate;
+    }
+
+    /* ボタンのガラス背景層 */
+    nav .button::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(255, 255, 255, 0.05) 100%
+      );
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: -1;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    body.dark nav .button::before {
+      background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.03) 100%
+      );
+    }
+
+    /* ボタンの外側グロー */
+    nav .button::after {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      background: radial-gradient(
+        circle,
+        rgba(102, 126, 234, 0.3) 0%,
+        rgba(118, 75, 162, 0.15) 50%,
+        transparent 70%
+      );
+      border-radius: 50%;
+      opacity: 0;
+      filter: blur(15px);
+      transform: scale(0.5);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: -2;
+    }
+
+    nav .button:hover::before {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    nav .button:hover::after {
+      opacity: 1;
+      transform: scale(1);
     }
 
     nav .button:hover {
-      background-color: rgba(107, 114, 128, 0.5);
+      transform: translateY(-3px);
     }
 
+    /* アクティブボタンのスタイル */
     nav .button.active {
-      background-color: #7c98ab;
+      background: linear-gradient(135deg,
+        rgba(102, 126, 234, 0.9) 0%,
+        rgba(118, 75, 162, 0.85) 50%,
+        rgba(240, 147, 251, 0.9) 100%
+      );
+      background-size: 200% 200%;
       color: white;
+      box-shadow:
+        0 6px 20px rgba(102, 126, 234, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.3) inset,
+        0 0 30px rgba(102, 126, 234, 0.3);
+      animation: activeGlow 3s ease-in-out infinite;
+    }
+
+    body.dark nav .button.active {
+      background: linear-gradient(135deg,
+        rgba(168, 181, 255, 0.85) 0%,
+        rgba(196, 157, 255, 0.8) 50%,
+        rgba(255, 179, 217, 0.85) 100%
+      );
+      background-size: 200% 200%;
+      box-shadow:
+        0 6px 20px rgba(168, 181, 255, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.3) inset,
+        0 0 30px rgba(168, 181, 255, 0.3);
+    }
+
+    nav .button.active::before {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+
+    nav .button.active::after {
+      opacity: 0.8;
+      transform: scale(1.2);
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes activeGlow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.8; transform: scale(1.2); }
+      50% { opacity: 1; transform: scale(1.4); }
     }
 
     nav .button svg {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ガラスグラデーションのアニメーション */
+    nav .button:hover svg defs linearGradient stop:first-child,
+    nav .button:hover svg defs radialGradient stop:first-child {
+      stop-color: rgba(255, 255, 255, 1);
+      transition: stop-color 0.3s ease;
+    }
+
+    nav .button:hover svg {
+      filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.4))
+              drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+      transform: scale(1.15) rotate(5deg);
+    }
+
+    nav .button.active svg {
+      filter: drop-shadow(0 2px 10px rgba(255, 255, 255, 0.6))
+              drop-shadow(0 0 12px rgba(102, 126, 234, 0.5));
+      animation: iconGlow 3s ease-in-out infinite;
+    }
+
+    body.dark nav .button.active svg {
+      filter: drop-shadow(0 2px 10px rgba(168, 181, 255, 0.6))
+              drop-shadow(0 0 12px rgba(196, 157, 255, 0.5));
+    }
+
+    /* アクティブアイコンのグローアニメーション */
+    @keyframes iconGlow {
+      0%, 100% {
+        filter: drop-shadow(0 2px 10px rgba(255, 255, 255, 0.6))
+                drop-shadow(0 0 12px rgba(102, 126, 234, 0.5));
+      }
+      50% {
+        filter: drop-shadow(0 2px 15px rgba(255, 255, 255, 0.8))
+                drop-shadow(0 0 18px rgba(102, 126, 234, 0.7));
+      }
+    }
+
+    /* SVGグラデーションのアニメーション（ダークモード） */
+    body.dark nav .button svg defs linearGradient stop,
+    body.dark nav .button svg defs radialGradient stop {
+      stop-color: rgba(200, 210, 255, 0.9);
+    }
+
+    body.dark nav .button.active svg defs linearGradient stop:first-child,
+    body.dark nav .button.active svg defs radialGradient stop:first-child {
+      stop-color: rgba(255, 255, 255, 1);
+    }
+
+    /* テーマトグルアイコンのスムーズトランジション */
+    nav .button.theme-toggle svg {
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    nav .button.theme-toggle:hover svg {
+      transform: scale(1.15) rotate(-10deg);
+    }
+
+    /* アイコン内の個別要素のアニメーション */
+    nav .button:hover svg path,
+    nav .button:hover svg circle,
+    nav .button:hover svg line {
+      animation: pathPulse 0.6s ease-out;
+    }
+
+    @keyframes pathPulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.05); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     /* ボタン */
@@ -268,37 +859,141 @@
 
     /* ポップアップ表示用のスタイル */
     .overlay {
-      display: none; /* 初期状態は非表示 */
+      display: none;
       position: fixed;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.7); /* 半透明の黒背景 */
-      z-index: 200; /* 他の要素の上に表示 */
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 200;
+      cursor: pointer;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .popup-photo {
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, -50%); /* 中央揃え */
-      max-width: 90%; /* ウィンドウ幅の90%を最大幅に */
-      max-height: 90%; /* ウィンドウ高さの90%を最大高さに */
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      transform: translate(-50%, -50%) scale(0.95);
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 1rem;
+      box-shadow:
+        0 40px 100px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      cursor: default;
+    }
+
+    @keyframes popIn {
+      to { transform: translate(-50%, -50%) scale(1); }
     }
 
     /* レスポンシブ調整 */
     @media (max-width: 768px) {
+      header {
+        padding: 1rem 1.5rem;
+      }
+
+      header h1 {
+        font-size: 1.25rem;
+      }
+
+      main {
+        padding-top: 5rem;
+      }
+
+      .portfolio {
+        padding: 1rem 5vw;
+        gap: 13rem;
+      }
+
+      .portfolio .photo {
+        flex: 0 0 85vw;
+      }
+
+      .category-filter-wrapper {
+        top: 0.75rem;
+        left: 0.75rem;
+      }
+
+      .category-filter-toggle {
+        padding: 0.6rem 0.85rem;
+        font-size: 0.8rem;
+      }
+
+      .category-filter-toggle svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .category-nav button {
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
+      }
+
+      nav {
+        bottom: 1rem;
+        padding: 0.5rem 1rem;
+        gap: 0.25rem;
+      }
+
+      nav::before {
+        inset: -20px; /* モバイルではオーラを少し小さく */
+      }
+
+      nav .button {
+        padding: 0.6rem;
+      }
+
+      nav .button svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      nav .button::after {
+        inset: -6px; /* モバイルではグローを小さく */
+      }
+
       .blog .card {
-        flex: 0 0 80vw;
-        height: calc(60vw);
+        flex: 0 0 85vw;
+        height: calc(65vw);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .portfolio .photo {
+        flex: 0 0 90vw;
+      }
+
+      .category-filter-toggle {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+      }
+
+      .category-nav button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
       }
     }
   </style>
 </head>
 <body class="light">
+  <!-- 抽象的なアニメーション背景 -->
+  <div class="abstract-background">
+    <div class="blob"></div>
+    <div class="blob"></div>
+    <div class="blob"></div>
+  </div>
+
   <!-- ヘッダー -->
   <header>
     <h1>Hal Sakaguchi | Portfolio</h1>
@@ -313,12 +1008,20 @@
   <!-- メインコンテンツ -->
   <main>
     <!-- カテゴリー切り替えナビ -->
-    <nav class="category-nav" style="text-align:center; margin-bottom:1rem;">
-      <button data-category="all" class="active">All</button>
-      <button data-category="2023">2023</button>
-      <button data-category="2024">2024</button>
-      <button data-category="travel">Travel</button>
-    </nav>
+    <div class="category-filter-wrapper">
+      <button class="category-filter-toggle">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M3 12h18M3 20h18"/>
+        </svg>
+        <span id="current-filter">All</span>
+      </button>
+      <nav class="category-nav">
+        <button data-category="all" class="active">All</button>
+        <button data-category="2023">2023</button>
+        <button data-category="2024">2024</button>
+        <button data-category="travel">Travel</button>
+      </nav>
+    </div>
     <!-- ポートフォリオセクション -->
     <section class="portfolio" id="portfolio">
       <div class="photo" data-year="2023" data-genre="abstract">
@@ -359,32 +1062,127 @@
   <!-- ナビゲーション -->
   <nav>
     <button class="button active" id="btn-portfolio" aria-label="Portfolio">
-      <!-- Home アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 3l7 6v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V15H10v7a1 1 0 01-1 1H5a1 1 0 01-1-1V9l7-6z"/>
+      <!-- Camera アイコン - ガラス風 -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+        <defs>
+          <linearGradient id="glass-gradient-1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.9);stop-opacity:1" />
+            <stop offset="50%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="glass-highlight-1" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.4);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+          </linearGradient>
+        </defs>
+        <!-- メインシェイプ -->
+        <path d="M9 3L7.5 5H4C2.9 5 2 5.9 2 7v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-3.5L15 3H9z"
+              fill="url(#glass-gradient-1)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- レンズ -->
+        <circle cx="12" cy="13" r="4" fill="none" stroke="url(#glass-gradient-1)" stroke-width="1.8"/>
+        <circle cx="12" cy="13" r="2.5" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.6"/>
+        <!-- ガラスハイライト -->
+        <path d="M9 3L7.5 5H4C2.9 5 2 5.9 2 7v2c0 0 0 0 0 0h16c0 0 0 0 0 0V7c0-1.1-.9-2-2-2h-3.5L15 3H9z"
+              fill="url(#glass-highlight-1)" opacity="0.3"/>
       </svg>
     </button>
     <button class="button" id="btn-blog" aria-label="Blog">
-      <!-- Book アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M19 2H8a2 2 0 00-2 2v16l4-4h9a2 2 0 002-2V4a2 2 0 00-2-2z"/>
+      <!-- Document アイコン - ガラス風 -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+        <defs>
+          <linearGradient id="glass-gradient-2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.9);stop-opacity:1" />
+            <stop offset="50%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="glass-highlight-2" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.5);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+          </linearGradient>
+        </defs>
+        <!-- ドキュメント本体 -->
+        <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z"
+              fill="url(#glass-gradient-2)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- 折り返し -->
+        <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+        <!-- テキストライン -->
+        <line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+        <line x1="8" y1="17" x2="13" y2="17" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+        <!-- ガラスハイライト -->
+        <path d="M14 2H6c-1.1 0-2 .9-2 2v4h12V8l-6-6z" fill="url(#glass-highlight-2)" opacity="0.3"/>
       </svg>
     </button>
     <button class="button" id="btn-about" aria-label="About">
-      <!-- User アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V21h19.2v-1.8c0-3.2-6.4-4.8-9.6-4.8z"/>
+      <!-- User アイコン - ガラス風 -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+        <defs>
+          <linearGradient id="glass-gradient-3" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.9);stop-opacity:1" />
+            <stop offset="50%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+          </linearGradient>
+          <radialGradient id="glass-highlight-3" cx="30%" cy="30%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+          </radialGradient>
+        </defs>
+        <!-- 頭部 -->
+        <circle cx="12" cy="8" r="4" fill="url(#glass-gradient-3)" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="12" cy="8" r="4" fill="url(#glass-highlight-3)" opacity="0.4"/>
+        <!-- 体部 -->
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="none" stroke="url(#glass-gradient-3)" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+        <!-- ハイライト -->
+        <circle cx="10.5" cy="7" r="1.5" fill="rgba(255,255,255,0.5)" opacity="0.6"/>
       </svg>
     </button>
     <button class="button theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
-      <!-- Moon アイコン -->
-      <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
-        <path d="M21.752 15.002A9 9 0 1111.998 2a7 7 0 109.754 13.002z"/>
+      <!-- Moon アイコン - ガラス風 -->
+      <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" style="display: none;">
+        <defs>
+          <linearGradient id="glass-gradient-moon" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.9);stop-opacity:1" />
+            <stop offset="50%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+          </linearGradient>
+          <radialGradient id="glass-highlight-moon" cx="70%" cy="30%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.5);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+          </radialGradient>
+        </defs>
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+              fill="url(#glass-gradient-moon)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="url(#glass-highlight-moon)" opacity="0.4"/>
       </svg>
-      <!-- Sun アイコン -->
-      <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 4.5V2m0 20v-2.5m5.303-17.303l1.768-1.768m-14.142 0l1.768 1.768M22 12h-2.5M4.5 12H2m17.303 5.303l-1.768 1.768M6.464 6.464l-1.768-1.768"/>
-        <circle cx="12" cy="12" r="5"/>
+      <!-- Sun アイコン - ガラス風 -->
+      <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+        <defs>
+          <linearGradient id="glass-gradient-sun" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.9);stop-opacity:1" />
+            <stop offset="50%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+          </linearGradient>
+          <radialGradient id="glass-highlight-sun" cx="40%" cy="40%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+          </radialGradient>
+        </defs>
+        <!-- 光線 -->
+        <g stroke="url(#glass-gradient-sun)" stroke-width="2" stroke-linecap="round">
+          <line x1="12" y1="2" x2="12" y2="4"/>
+          <line x1="12" y1="20" x2="12" y2="22"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="2" y1="12" x2="4" y2="12"/>
+          <line x1="20" y1="12" x2="22" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </g>
+        <!-- 中央の太陽 -->
+        <circle cx="12" cy="12" r="5" fill="url(#glass-gradient-sun)" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="12" cy="12" r="5" fill="url(#glass-highlight-sun)" opacity="0.5"/>
+        <!-- 内側ハイライト -->
+        <circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.4)" opacity="0.6"/>
       </svg>
     </button>
   </nav>
@@ -506,23 +1304,53 @@
       e.stopPropagation(); // 画像自体のクリックはオーバーレイのクリックイベントに伝播させない
     });
     // カテゴリーフィルタリング機能
+    const filterToggle = document.querySelector('.category-filter-toggle');
+    const categoryNav = document.querySelector('.category-nav');
+    const currentFilterText = document.getElementById('current-filter');
     const navButtons = document.querySelectorAll('.category-nav button');
     const photoElements = document.querySelectorAll('.portfolio .photo');
+
+    // トグルボタンでドロップダウンを開閉
+    filterToggle.addEventListener('click', () => {
+      filterToggle.classList.toggle('open');
+      categoryNav.classList.toggle('open');
+    });
+
+    // 各カテゴリーボタンのクリックイベント
     navButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         navButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const cat = btn.dataset.category;
+        const categoryLabel = btn.textContent;
+
+        // 現在のフィルターテキストを更新
+        currentFilterText.textContent = categoryLabel;
+
+        // フィルタリング
         photoElements.forEach(photo => {
           const matches = cat === 'all'
             || photo.dataset.year === cat
             || photo.dataset.genre === cat;
           photo.style.display = matches ? 'flex' : 'none';
         });
+
+        // ドロップダウンを自動で閉じる
+        filterToggle.classList.remove('open');
+        categoryNav.classList.remove('open');
+
         // 最初の表示要素にスクロール
         const first = document.querySelector('.portfolio .photo[style*="display: flex"]');
         if (first) first.scrollIntoView({behavior:'smooth', inline:'center'});
       });
+    });
+
+    // ドロップダウン外をクリックしたら閉じる
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.category-filter-wrapper')) {
+        filterToggle.classList.remove('open');
+        categoryNav.classList.remove('open');
+      }
     });
   </script>
 </body>
