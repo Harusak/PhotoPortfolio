@@ -58,7 +58,7 @@ Replace the current nested multi-layer card structure with a single `<article>` 
 No changes — retains existing horizontal scroll, snap, padding, gap. `addHorizontalScroll` is called with `sections['blog']` (the `<section class="blog">` element), which is unchanged. `.blog-card` elements are direct children of this container, so the scroll function targets the correct element.
 
 ### `.blog-background`
-Retain Flickr background image. Lighten the `::before` overlay from `rgba(0,0,0,0.35)` to `rgba(0,0,0,0.2)` to let the photo show through more.
+Retain Flickr background image. `::before` holds the color gradient animation (unchanged). `::after` holds the dark overlay — lighten it from `rgba(0,0,0,0.35)` to `rgba(0,0,0,0.2)` and remove the `filter: url(#card-grain)` reference. Also update `body.dark .blog-background::after` from `rgba(0,0,0,0.55)` to `rgba(0,0,0,0.35)`.
 
 ### `.blog-card`
 
