@@ -46,12 +46,16 @@ Replace the current nested multi-layer card structure with a single `<article>` 
 
 **Removed elements:** `.card-layers`, `.card-layer` (shadow/base/edge), `.card-grain`, `.card-shine`
 
+**Empty post list:** If `site.posts` is empty, `<section class="blog">` renders with only the background div and no cards. No placeholder message is required — this is out of scope.
+
+**Interactivity note:** The card (`<article>`) is not itself a link. Only the inner `.blog-card-link` anchor handles navigation. The card does not need `cursor: pointer` or `text-decoration: none`. Hover styling on the card is purely visual.
+
 ---
 
 ## CSS Design
 
 ### `.blog` (container)
-No changes — retains existing horizontal scroll, snap, padding, gap.
+No changes — retains existing horizontal scroll, snap, padding, gap. `addHorizontalScroll` is called with `sections['blog']` (the `<section class="blog">` element), which is unchanged. `.blog-card` elements are direct children of this container, so the scroll function targets the correct element.
 
 ### `.blog-background`
 Retain Flickr background image. Lighten the `::before` overlay from `rgba(0,0,0,0.35)` to `rgba(0,0,0,0.2)` to let the photo show through more.
@@ -76,8 +80,6 @@ Retain Flickr background image. Lighten the `::before` overlay from `rgba(0,0,0,
   flex-direction: column;
   gap: 0.75rem;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
-  cursor: pointer;
-  text-decoration: none;
 }
 
 .blog-card:hover {
@@ -90,6 +92,8 @@ body.dark .blog-card {
   border-color: rgba(255, 255, 255, 0.15);
 }
 ```
+
+**Dark mode note:** All card internals (date, title, desc, link) inherit `color: white` from `.blog-card`. No additional `body.dark` rules are needed for child elements — the inherited white text is intentional and readable against both light and dark card backgrounds.
 
 ### Card internals
 
@@ -137,9 +141,13 @@ body.dark .blog-card {
 @media (max-width: 768px) {
   .blog-card {
     flex: 0 0 80vw;
+    padding: 1.5rem;
+    min-height: 240px;
   }
 }
 ```
+
+All other card properties (`gap`, `border-radius`, `backdrop-filter`, etc.) are intentionally unchanged on mobile.
 
 ### CSS to remove
 
@@ -163,9 +171,10 @@ body.dark .blog-card {
 - Random size assignment loop (`blogCards.forEach` for size assignment)
 - Shine mouse-tracking loop (`blogCards.forEach` for mousemove)
 - Card click morphing animation loop (`blogCards.forEach` for transitioning class)
+- `const blogCards = document.querySelectorAll('.blog .card')` — no longer needed
 
 ### Retain
-- `addHorizontalScroll(sections['blog'])` — unchanged
+- `addHorizontalScroll(sections['blog'])` — called with `sections['blog']` unchanged, targeting the same `<section class="blog">` element
 
 Navigation on card click is handled directly by the `<a href>` on `.blog-card-link`, requiring no JS intervention.
 
@@ -184,8 +193,9 @@ Navigation on card click is handled directly by the `<a href>` on `.blog-card-li
 
 ## Success Criteria
 
-- Blog cards render without visual bugs in Chrome, Safari, and Firefox
-- Glassmorphism (blur + semi-transparent) is visible over the photo background
-- Horizontal scroll and snap work as before
-- Dark mode switches card appearance correctly
-- All blog posts display with title, date, description, and working link
+- Blog cards render without visual bugs in Chrome, Safari, and Firefox (no invisible cards, no clipped content, no broken blur)
+- `backdrop-filter: blur(20px)` is applied — verifiable via DevTools computed styles
+- Horizontal scroll functions and cards snap to center (`scroll-snap-align: center` in effect)
+- `body.dark` toggle changes `.blog-card` background from `rgba(255,255,255,0.15)` to `rgba(0,0,0,0.25)` — verifiable via DevTools
+- All blog posts display title, formatted date (YYYY.MM.DD), description, and a working Read More link
+- No JavaScript errors in DevTools console on page load
