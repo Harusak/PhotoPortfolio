@@ -1449,38 +1449,14 @@
 
     <!-- ブログセクション -->
     <section class="blog" id="blog" style="display: none;">
-      <!-- 背景レイヤー -->
       <div class="blog-background"></div>
-
-      <!-- ブログカード -->
       {% for post in site.posts %}
-        <div class="card" data-post-id="{{ post.id }}">
-          <div class="card-layers">
-            <!-- 影レイヤー -->
-            <div class="card-layer layer-shadow"></div>
-
-            <!-- ベースレイヤー -->
-            <div class="card-layer layer-base">
-              <!-- ノイズテクスチャ -->
-              <div class="card-grain"></div>
-
-              <!-- コンテンツ -->
-              <div class="card-content">
-                <h2>{{ post.title }}</h2>
-                <p>{{ post.description }}</p>
-                <a href="{{ post.url | relative_url }}" class="card-link">
-                  <span class="read-more">Read More →</span>
-                </a>
-              </div>
-            </div>
-
-            <!-- エッジレイヤー -->
-            <div class="card-layer layer-edge"></div>
-
-            <!-- 光沢エフェクト -->
-            <div class="card-shine"></div>
-          </div>
-        </div>
+        <article class="blog-card">
+          <time class="blog-card-date">{{ post.date | date: "%Y.%m.%d" }}</time>
+          <h2 class="blog-card-title">{{ post.title }}</h2>
+          <p class="blog-card-desc">{{ post.description }}</p>
+          <a href="{{ post.url | relative_url }}" class="blog-card-link">Read More →</a>
+        </article>
       {% endfor %}
     </section>
 
