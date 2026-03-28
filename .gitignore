@@ -8,3 +8,5 @@ _site/
 
 # Bundler
 Gemfile.lock
+
+error-*.m s
