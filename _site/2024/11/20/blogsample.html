@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ブログサンプル | Hal Sakaguchi</title>
+  <!-- Tailwind CSS を CDN 経由で読み込み -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- レスポンシブ対応のメタタグ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body.dark {
+      background-color: #313131;
+      color: #f3f4f6;
+    }
+    body.light {
+      background-color: #f3f4f6;
+      color: #1f2937;
+    }
+    #image-container {
+      position: fixed;
+      z-index: 10;
+      transition: all 0.3s ease-in-out;
+    }
+    #image-container.expanded {
+      top: 1rem;
+      left: 1rem;
+      right: 1rem;
+      height: calc(40vh - 2rem);
+    }
+    #image-container.shrinked {
+      top: 1rem;
+      right: 1rem;
+      width: 33.3333%;
+      max-width: 24rem;
+      aspect-ratio: 16 / 9;
+      height: auto;
+    }
+    #image-overlay {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+      transition: background-color 0.3s ease-in-out;
+    }
+    #image-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+    }
+    #image-wrapper.backdrop {
+      backdrop-filter: blur(4px);
+      background-opacity: 0.7;
+    }
+    #content {
+      position: relative;
+      z-index: 0;
+      height: 100%;
+      overflow-y: auto;
+      padding-top: calc(40vh + 1rem);
+      padding-bottom: 4rem;
+    }
+    /* ナビゲーションバーのスタイル */
+    nav {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 9999px;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(4px);
+      z-index: 10;
+    }
+    body.dark nav {
+      background-color: rgba(49, 49, 49, 0.7);
+    }
+    nav .button {
+      padding: 0.5rem;
+      margin: 0 0.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: inherit;
+      background-color: transparent;
+      transition: background-color 0.2s ease-in-out;
+    }
+    nav .button:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+    body.dark nav .button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    nav .button.active {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+    body.dark nav .button.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    nav .button svg {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  </style>
+</head>
+<body id="body" class="h-screen flex flex-col light">
+  <main class="flex-1 relative overflow-hidden">
+    <!-- 固定された画像コンテナ -->
+    <div id="image-container" class="expanded">
+      <!-- 画像ラッパー -->
+      <div id="image-wrapper">
+        <!-- 画像 -->
+        <img src="https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg" alt="ブログサンプル" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out">
+        <div id="image-overlay"></div>
+      </div>
+    </div>
+    <!-- スクロール可能なコンテンツエリア -->
+    <div id="content">
+      <!-- 記事コンテンツ -->
+      <article class="bg-stone-50 dark:bg-stone-800 p-6 md:p-8 min-h-screen rounded-t-3xl">
+        <!-- テキストコンテンツ -->
+        <div class="prose dark:prose-invert max-w-none">
+          <h1 class="text-3xl md:text-4xl font-bold mb-4">ブログサンプル</h1>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">2024年11月20日</p>
+
+          <h1 id="サンプル">サンプル</h1>
+<p>ここに記事の本文を書きます。</p>
+
+
+
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <!-- ナビゲーション -->
+  <nav>
+    <button class="button active" id="btn-portfolio" aria-label="Portfolio" data-target="/PhotoPortfolio/">
+      <!-- Home アイコンのSVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 3l7 6v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V15H10v7a1 1 0 01-1 1H5a1 1 0 01-1-1V9l7-6z"/>
+      </svg>
+    </button>
+    <button class="button" id="btn-blog" aria-label="Blog" data-target="/PhotoPortfolio/">
+      <!-- Book アイコンのSVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M19 2H8a2 2 0 00-2 2v16l4-4h9a2 2 0 002-2V4a2 2 0 00-2-2z"/>
+      </svg>
+    </button>
+    <button class="button" id="btn-about" aria-label="About" data-target="/PhotoPortfolio/">
+      <!-- User アイコンのSVG -->
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V21h19.2v-1.8c0-3.2-6.4-4.8-9.6-4.8z"/>
+      </svg>
+    </button>
+    <button class="button theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
+      <!-- Moon アイコン -->
+      <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
+        <path d="M21.752 15.002A9 9 0 1111.998 2a7 7 0 109.754 13.002z"/>
+      </svg>
+      <!-- Sun アイコン -->
+      <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 4.5V2m0 20v-2.5m5.303-17.303l-1.768-1.768m-14.142 0l1.768 1.768M22 12h-2.5M4.5 12H2m17.303 5.303l-1.768 1.768M6.464 6.464l-1.768-1.768"/>
+        <circle cx="12" cy="12" r="5"/>
+      </svg>
+    </button>
+  </nav>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 状態変数
+      let isDarkMode = false;
+      let isImageExpanded = true;
+      let scrollPosition = 0;
+
+      // 要素の取得
+      const body = document.getElementById('body');
+      const imageContainer = document.getElementById('image-container');
+      const imageWrapper = document.getElementById('image-wrapper');
+      const imageOverlay = document.getElementById('image-overlay');
+      const content = document.getElementById('content');
+      const themeToggleButton = document.getElementById('theme-toggle');
+      const iconMoon = document.getElementById('icon-moon');
+      const iconSun = document.getElementById('icon-sun');
+      const navButtons = document.querySelectorAll('nav .button');
+
+      // ローカルストレージからテーマを取得
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      isDarkMode = (savedTheme === 'dark');
+      updateTheme();
+
+      // スクロールイベントのリスナー
+      content.addEventListener('scroll', function() {
+        scrollPosition = content.scrollTop;
+        if (scrollPosition > 100 && isImageExpanded) {
+          isImageExpanded = false;
+          updateImageContainer();
+        }
+      });
+
+      // 画像クリック時のイベントリスナー
+      imageWrapper.addEventListener('click', function() {
+        isImageExpanded = !isImageExpanded;
+        updateImageContainer();
+      });
+
+      // テーマを更新する関数
+      function updateTheme() {
+        if (isDarkMode) {
+          body.classList.remove('light');
+          body.classList.add('dark');
+          iconMoon.style.display = 'none';
+          iconSun.style.display = 'block';
+        } else {
+          body.classList.remove('dark');
+          body.classList.add('light');
+          iconMoon.style.display = 'block';
+          iconSun.style.display = 'none';
+        }
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+      }
+
+      // テーマを切り替える関数
+      function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        updateTheme();
+      }
+
+      // 画像コンテナを更新する関数
+      function updateImageContainer() {
+        if (isImageExpanded) {
+          imageContainer.classList.remove('shrinked');
+          imageContainer.classList.add('expanded');
+          imageOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+          imageWrapper.classList.remove('backdrop');
+        } else {
+          imageContainer.classList.remove('expanded');
+          imageContainer.classList.add('shrinked');
+          imageOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+          imageWrapper.classList.add('backdrop');
+          imageContainer.style.aspectRatio = '16 / 9';
+          imageContainer.style.height = 'auto';
+        }
+      }
+
+      // 各ボタンにクリックイベントを設定
+      navButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          const targetUrl = button.getAttribute('data-target'); // data-target属性を取得
+          if (targetUrl) {
+            window.location.href = targetUrl; // 対象ページに遷移
+          }
+        });
+      });
+
+      // 初期化
+      updateImageContainer();
+
+      // テーマ切り替えボタンのイベントリスナー
+      if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', toggleTheme);
+      }
+    });
+  </script>
+</body>
+</html>

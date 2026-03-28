@@ -3,3 +3,8 @@ description: "Portfolio, Blog, Tips, and more"
 baseurl: "/PhotoPortfolio"
 # permalink: /blog/:title/  # 必要に応じてURL構造を変更
 
+exclude:
+  - docs/
+  - Gemfile
+  - Gemfile.lock
+
