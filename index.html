@@ -1194,20 +1194,29 @@
   <!-- メインコンテンツ -->
   <main>
     <!-- カテゴリー切り替えナビ -->
-    <div class="category-filter-wrapper">
-      <button class="category-filter-toggle">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M3 12h18M3 20h18"/>
-        </svg>
-        <span id="current-filter">All</span>
-      </button>
-      <nav class="category-nav">
-        <button data-category="all" class="active">All</button>
-        <button data-category="2023">2023</button>
-        <button data-category="2024">2024</button>
-        <button data-category="travel">Travel</button>
-      </nav>
-    </div>
+    <nav class="filter-nav">
+      <button data-filter="all" class="active">All</button>
+
+      <div class="filter-group">
+        <span class="filter-group-label">Year</span>
+        {% assign years = site.data.photos | map: "year" | uniq | sort %}
+        {% for year in years %}
+          <button data-filter="{{ year }}">{{ year }}</button>
+        {% endfor %}
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-group-label">Genre</span>
+        {% assign all_tags = "" | split: "" %}
+        {% for photo in site.data.photos %}
+          {% assign all_tags = all_tags | concat: photo.tags %}
+        {% endfor %}
+        {% assign unique_tags = all_tags | uniq | sort %}
+        {% for tag in unique_tags %}
+          <button data-filter="{{ tag }}">{{ tag }}</button>
+        {% endfor %}
+      </div>
+    </nav>
     <!-- ポートフォリオセクション -->
     <section class="portfolio" id="portfolio">
       {% for photo in site.data.photos %}
