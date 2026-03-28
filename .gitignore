@@ -9,4 +9,4 @@ _site/
 # Bundler
 Gemfile.lock
 
-error-*.md
+*.md
