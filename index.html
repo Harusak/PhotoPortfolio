@@ -1387,60 +1387,12 @@
         </feComponentTransfer>
       </filter>
 
-      <!-- ブログカード用の強烈なノイズテクスチャ -->
-      <filter id="card-grain">
-        <feTurbulence type="fractalNoise" baseFrequency="1.5" numOctaves="5" seed="42" />
-        <feColorMatrix type="saturate" values="0" />
-        <feComponentTransfer>
-          <feFuncA type="discrete" tableValues="0 0.08 0.15 0.22" />
-        </feComponentTransfer>
-        <feBlend mode="multiply" in="SourceGraphic" />
-      </filter>
-
       <!-- インクブリード効果 -->
       <filter id="ink-bleed">
         <feMorphology operator="dilate" radius="0.5" />
         <feGaussianBlur stdDeviation="0.8" />
       </filter>
 
-      <!-- 粗いエッジパターン1（破れた紙） -->
-      <clipPath id="torn-edge-1" clipPathUnits="objectBoundingBox">
-        <path d="M 0.02,0
-                 L 0.98,0.01
-                 C 0.985,0.05 0.99,0.1 0.995,0.15
-                 L 0.998,0.85
-                 C 0.995,0.9 0.99,0.95 0.98,0.99
-                 L 0.02,0.98
-                 C 0.015,0.94 0.01,0.9 0.005,0.85
-                 L 0.002,0.15
-                 C 0.005,0.1 0.01,0.05 0.02,0.01 Z" />
-      </clipPath>
-
-      <!-- 粗いエッジパターン2 -->
-      <clipPath id="torn-edge-2" clipPathUnits="objectBoundingBox">
-        <path d="M 0.015,0.005
-                 L 0.985,0.002
-                 C 0.992,0.08 0.998,0.12 0.995,0.2
-                 L 0.997,0.8
-                 C 0.994,0.88 0.988,0.92 0.985,0.995
-                 L 0.015,0.998
-                 C 0.008,0.92 0.002,0.88 0.005,0.8
-                 L 0.003,0.2
-                 C 0.006,0.12 0.012,0.08 0.015,0.005 Z" />
-      </clipPath>
-
-      <!-- 粗いエッジパターン3 -->
-      <clipPath id="torn-edge-3" clipPathUnits="objectBoundingBox">
-        <path d="M 0.01,0.008
-                 L 0.99,0.005
-                 C 0.995,0.06 0.997,0.11 0.998,0.18
-                 L 0.996,0.82
-                 C 0.993,0.89 0.991,0.94 0.99,0.992
-                 L 0.01,0.995
-                 C 0.005,0.94 0.003,0.89 0.002,0.82
-                 L 0.004,0.18
-                 C 0.007,0.11 0.009,0.06 0.01,0.008 Z" />
-      </clipPath>
     </defs>
   </svg>
 
