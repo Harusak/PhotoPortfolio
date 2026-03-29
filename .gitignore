@@ -10,3 +10,7 @@ _site/
 Gemfile.lock
 
 *.md
+!docs/**/*.md
+
+# Superpowers brainstorm sessions
+.superpowers/
