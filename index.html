@@ -432,16 +432,14 @@
       margin-bottom: 1rem;
     }
 
-    /* カテゴリーナビゲーション */
-    .category-filter-wrapper {
+    /* フィルターナビゲーション */
+    .filter-nav {
       position: absolute;
       top: 1rem;
       left: 1rem;
       z-index: 50;
-    }
-
-    .category-filter-toggle {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 0.5rem;
       background: rgba(255, 255, 255, 0.1);
@@ -449,101 +447,60 @@
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.2);
       padding: 0.75rem 1rem;
-      border-radius: 9999px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: inherit;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    }
-
-    body.dark .category-filter-toggle {
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .category-filter-toggle:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    }
-
-    body.dark .category-filter-toggle:hover {
-      background: rgba(0, 0, 0, 0.3);
-    }
-
-    .category-filter-toggle svg {
-      width: 18px;
-      height: 18px;
-      transition: transform 0.3s ease;
-    }
-
-    .category-filter-toggle.open svg {
-      transform: rotate(180deg);
-    }
-
-    .category-nav {
-      position: absolute;
-      top: calc(100% + 0.5rem);
-      left: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      padding: 0.5rem;
       border-radius: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-10px);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      min-width: 150px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      max-width: calc(100% - 2rem);
     }
 
-    .category-nav.open {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
-    }
-
-    body.dark .category-nav {
+    body.dark .filter-nav {
       background: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .category-nav button {
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .filter-group-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-right: 2px;
+    }
+
+    .filter-nav button {
       background: transparent;
-      border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.4rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
       color: inherit;
       transition: all 0.2s ease;
-      text-align: left;
       white-space: nowrap;
     }
 
-    .category-nav button:hover {
+    .filter-nav button:hover {
       background: rgba(255, 255, 255, 0.15);
     }
 
-    body.dark .category-nav button:hover {
+    body.dark .filter-nav button:hover {
       background: rgba(255, 255, 255, 0.1);
     }
 
-    .category-nav button.active {
+    .filter-nav button.active {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
+      border-color: transparent;
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
 
-    body.dark .category-nav button.active {
+    body.dark .filter-nav button.active {
       background: linear-gradient(135deg, #a8b5ff 0%, #c49dff 100%);
     }
 
@@ -1079,24 +1036,16 @@
         flex: 0 0 85vw;
       }
 
-      .category-filter-wrapper {
+      .filter-nav {
         top: 0.75rem;
         left: 0.75rem;
-      }
-
-      .category-filter-toggle {
         padding: 0.6rem 0.85rem;
-        font-size: 0.8rem;
+        gap: 0.4rem;
       }
 
-      .category-filter-toggle svg {
-        width: 16px;
-        height: 16px;
-      }
-
-      .category-nav button {
-        padding: 0.5rem 0.85rem;
-        font-size: 0.8rem;
+      .filter-nav button {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.75rem;
       }
 
       nav {
@@ -1156,14 +1105,14 @@
         flex: 0 0 90vw;
       }
 
-      .category-filter-toggle {
+      .filter-nav {
         padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
+        gap: 0.35rem;
       }
 
-      .category-nav button {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
+      .filter-nav button {
+        padding: 0.3rem 0.65rem;
+        font-size: 0.7rem;
       }
 
       .popup-photo::before {
