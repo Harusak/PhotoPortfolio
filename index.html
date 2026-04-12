@@ -432,75 +432,111 @@
       margin-bottom: 1rem;
     }
 
-    /* フィルターナビゲーション */
-    .filter-nav {
+    /* フィルタートグル */
+    .filter-toggle {
       position: absolute;
       top: 1rem;
-      left: 1rem;
+      right: 1rem;
       z-index: 50;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.75rem 1rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      max-width: calc(100% - 2rem);
+      cursor: pointer;
+      color: inherit;
+      transition: background 0.2s ease;
     }
 
-    body.dark .filter-nav {
+    body.dark .filter-toggle {
       background: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .filter-group {
-      display: flex;
+    .filter-toggle:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    body.dark .filter-toggle:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .filter-dot {
+      display: none;
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #667eea;
+    }
+
+    .filter-toggle.filtered .filter-dot {
+      display: block;
+    }
+
+    .filter-popover {
+      display: none;
+      position: absolute;
+      top: calc(1rem + 44px);
+      right: 1rem;
+      z-index: 50;
       flex-wrap: wrap;
-      align-items: center;
       gap: 0.4rem;
+      max-width: 280px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.6rem 0.75rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
 
-    .filter-group-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #888;
-      margin-right: 2px;
+    .filter-popover.open {
+      display: flex;
     }
 
-    .filter-nav button {
+    body.dark .filter-popover {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .filter-popover button {
       background: transparent;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.4rem 0.85rem;
+      padding: 0.35rem 0.75rem;
       border-radius: 9999px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 500;
       cursor: pointer;
       color: inherit;
-      transition: all 0.2s ease;
+      transition: background 0.2s ease;
       white-space: nowrap;
     }
 
-    .filter-nav button:hover {
+    .filter-popover button:hover {
       background: rgba(255, 255, 255, 0.15);
     }
 
-    body.dark .filter-nav button:hover {
+    body.dark .filter-popover button:hover {
       background: rgba(255, 255, 255, 0.1);
     }
 
-    .filter-nav button.active {
+    .filter-popover button.active {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border-color: transparent;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
-    body.dark .filter-nav button.active {
+    body.dark .filter-popover button.active {
       background: linear-gradient(135deg, #a8b5ff 0%, #c49dff 100%);
     }
 
@@ -1036,17 +1072,6 @@
         flex: 0 0 85vw;
       }
 
-      .filter-nav {
-        top: 0.75rem;
-        left: 0.75rem;
-        padding: 0.6rem 0.85rem;
-        gap: 0.4rem;
-      }
-
-      .filter-nav button {
-        padding: 0.35rem 0.75rem;
-        font-size: 0.75rem;
-      }
 
       nav {
         bottom: 1rem;
@@ -1105,15 +1130,6 @@
         flex: 0 0 90vw;
       }
 
-      .filter-nav {
-        padding: 0.5rem 0.75rem;
-        gap: 0.35rem;
-      }
-
-      .filter-nav button {
-        padding: 0.3rem 0.65rem;
-        font-size: 0.7rem;
-      }
 
       .popup-photo::before {
         opacity: 0.65; /* 小画面ではさらに抑制 */
