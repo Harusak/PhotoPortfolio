@@ -1584,53 +1584,59 @@
       // 閉じる処理は削除（×ボタンのみで閉じる）
     });
 
-    // カテゴリーフィルタリング機能
-    const filterToggle = document.querySelector('.category-filter-toggle');
-    const categoryNav = document.querySelector('.category-nav');
-    const currentFilterText = document.getElementById('current-filter');
-    const navButtons = document.querySelectorAll('.category-nav button');
+    // フィルタートグル
+    const filterToggleBtn = document.querySelector('.filter-toggle');
+    const filterPopover = document.querySelector('.filter-popover');
+    const popoverButtons = document.querySelectorAll('.filter-popover button');
     const photoElements = document.querySelectorAll('.portfolio .photo');
 
-    // トグルボタンでドロップダウンを開閉
-    filterToggle.addEventListener('click', () => {
-      filterToggle.classList.toggle('open');
-      categoryNav.classList.toggle('open');
+    // アイコンクリックでポップオーバーを開閉
+    filterToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = filterPopover.classList.toggle('open');
+      filterToggleBtn.setAttribute('aria-expanded', isOpen);
     });
 
-    // 各カテゴリーボタンのクリックイベント
-    navButtons.forEach(btn => {
+    // フィルターボタンのクリック
+    popoverButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        navButtons.forEach(b => b.classList.remove('active'));
+        popoverButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const cat = btn.dataset.category;
-        const categoryLabel = btn.textContent;
+        const filter = btn.dataset.filter;
 
-        // 現在のフィルターテキストを更新
-        currentFilterText.textContent = categoryLabel;
+        // ドット表示（all以外のとき）
+        if (filter === 'all') {
+          filterToggleBtn.classList.remove('filtered');
+        } else {
+          filterToggleBtn.classList.add('filtered');
+        }
 
-        // フィルタリング
+        // 写真の表示切り替え
         photoElements.forEach(photo => {
-          const matches = cat === 'all'
-            || photo.dataset.year === cat
-            || photo.dataset.genre === cat;
-          photo.style.display = matches ? 'flex' : 'none';
+          if (filter === 'all') {
+            photo.style.display = 'flex';
+            return;
+          }
+          const year = photo.dataset.year;
+          const tags = (photo.dataset.tags || '').split(' ');
+          photo.style.display = (year === String(filter) || tags.includes(filter)) ? 'flex' : 'none';
         });
 
-        // ドロップダウンを自動で閉じる
-        filterToggle.classList.remove('open');
-        categoryNav.classList.remove('open');
+        // ポップオーバーを閉じる
+        filterPopover.classList.remove('open');
+        filterToggleBtn.setAttribute('aria-expanded', 'false');
 
         // 最初の表示要素にスクロール
-        const first = document.querySelector('.portfolio .photo[style*="display: flex"]');
-        if (first) first.scrollIntoView({behavior:'smooth', inline:'center'});
+        const first = document.querySelector('.portfolio .photo:not([style*="display: none"])');
+        if (first) first.scrollIntoView({ behavior: 'smooth', inline: 'center' });
       });
     });
 
-    // ドロップダウン外をクリックしたら閉じる
+    // ポップオーバー外クリックで閉じる
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.category-filter-wrapper')) {
-        filterToggle.classList.remove('open');
-        categoryNav.classList.remove('open');
+      if (!e.target.closest('.filter-toggle') && !e.target.closest('.filter-popover')) {
+        filterPopover.classList.remove('open');
+        filterToggleBtn.setAttribute('aria-expanded', 'false');
       }
     });
 
