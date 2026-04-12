@@ -432,75 +432,111 @@
       margin-bottom: 1rem;
     }
 
-    /* フィルターナビゲーション */
-    .filter-nav {
+    /* フィルタートグル */
+    .filter-toggle {
       position: absolute;
       top: 1rem;
-      left: 1rem;
+      right: 1rem;
       z-index: 50;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.75rem 1rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      max-width: calc(100% - 2rem);
+      cursor: pointer;
+      color: inherit;
+      transition: background 0.2s ease;
     }
 
-    body.dark .filter-nav {
+    body.dark .filter-toggle {
       background: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .filter-group {
-      display: flex;
+    .filter-toggle:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    body.dark .filter-toggle:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .filter-dot {
+      display: none;
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #667eea;
+    }
+
+    .filter-toggle.filtered .filter-dot {
+      display: block;
+    }
+
+    .filter-popover {
+      display: none;
+      position: absolute;
+      top: calc(1rem + 44px);
+      right: 1rem;
+      z-index: 50;
       flex-wrap: wrap;
-      align-items: center;
       gap: 0.4rem;
+      max-width: 280px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.6rem 0.75rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     }
 
-    .filter-group-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #888;
-      margin-right: 2px;
+    .filter-popover.open {
+      display: flex;
     }
 
-    .filter-nav button {
+    body.dark .filter-popover {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .filter-popover button {
       background: transparent;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.4rem 0.85rem;
+      padding: 0.35rem 0.75rem;
       border-radius: 9999px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 500;
       cursor: pointer;
       color: inherit;
-      transition: all 0.2s ease;
+      transition: background 0.2s ease;
       white-space: nowrap;
     }
 
-    .filter-nav button:hover {
+    .filter-popover button:hover {
       background: rgba(255, 255, 255, 0.15);
     }
 
-    body.dark .filter-nav button:hover {
+    body.dark .filter-popover button:hover {
       background: rgba(255, 255, 255, 0.1);
     }
 
-    .filter-nav button.active {
+    .filter-popover button.active {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border-color: transparent;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
     }
 
-    body.dark .filter-nav button.active {
+    body.dark .filter-popover button.active {
       background: linear-gradient(135deg, #a8b5ff 0%, #c49dff 100%);
     }
 
@@ -1036,17 +1072,6 @@
         flex: 0 0 85vw;
       }
 
-      .filter-nav {
-        top: 0.75rem;
-        left: 0.75rem;
-        padding: 0.6rem 0.85rem;
-        gap: 0.4rem;
-      }
-
-      .filter-nav button {
-        padding: 0.35rem 0.75rem;
-        font-size: 0.75rem;
-      }
 
       nav {
         bottom: 1rem;
@@ -1105,15 +1130,6 @@
         flex: 0 0 90vw;
       }
 
-      .filter-nav {
-        padding: 0.5rem 0.75rem;
-        gap: 0.35rem;
-      }
-
-      .filter-nav button {
-        padding: 0.3rem 0.65rem;
-        font-size: 0.7rem;
-      }
 
       .popup-photo::before {
         opacity: 0.65; /* 小画面ではさらに抑制 */
@@ -1142,30 +1158,28 @@
 
   <!-- メインコンテンツ -->
   <main>
-    <!-- カテゴリー切り替えナビ -->
-    <nav class="filter-nav">
-      <button data-filter="all" class="active">All</button>
-
-      <div class="filter-group">
-        <span class="filter-group-label">Year</span>
-        {% assign years = site.data.photos | map: "year" | uniq | sort %}
-        {% for year in years %}
-          <button data-filter="{{ year }}">{{ year }}</button>
-        {% endfor %}
-      </div>
-
-      <div class="filter-group">
-        <span class="filter-group-label">Genre</span>
-        {% assign all_tags = "" | split: "" %}
-        {% for photo in site.data.photos %}
-          {% assign all_tags = all_tags | concat: photo.tags %}
-        {% endfor %}
-        {% assign unique_tags = all_tags | uniq | sort %}
-        {% for tag in unique_tags %}
-          <button data-filter="{{ tag }}">{{ tag }}</button>
-        {% endfor %}
-      </div>
-    </nav>
+    <!-- フィルタートグル -->
+    <button type="button" class="filter-toggle" aria-label="フィルター" aria-expanded="false" aria-controls="filter-popover">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+      <span class="filter-dot"></span>
+    </button>
+    <div id="filter-popover" class="filter-popover">
+      <button type="button" data-filter="all" class="active">All</button>
+      {% assign years = site.data.photos | map: "year" | uniq | sort %}
+      {% for year in years %}
+        <button type="button" data-filter="{{ year }}">{{ year }}</button>
+      {% endfor %}
+      {% assign all_tags = "" | split: "" %}
+      {% for photo in site.data.photos %}
+        {% assign all_tags = all_tags | concat: photo.tags %}
+      {% endfor %}
+      {% assign unique_tags = all_tags | uniq | sort %}
+      {% for tag in unique_tags %}
+        <button type="button" data-filter="{{ tag }}">{{ tag }}</button>
+      {% endfor %}
+    </div>
     <!-- ポートフォリオセクション -->
     <section class="portfolio" id="portfolio">
       {% for photo in site.data.photos %}
@@ -1570,53 +1584,59 @@
       // 閉じる処理は削除（×ボタンのみで閉じる）
     });
 
-    // カテゴリーフィルタリング機能
-    const filterToggle = document.querySelector('.category-filter-toggle');
-    const categoryNav = document.querySelector('.category-nav');
-    const currentFilterText = document.getElementById('current-filter');
-    const navButtons = document.querySelectorAll('.category-nav button');
+    // フィルタートグル
+    const filterToggleBtn = document.querySelector('.filter-toggle');
+    const filterPopover = document.querySelector('.filter-popover');
+    const popoverButtons = document.querySelectorAll('.filter-popover button');
     const photoElements = document.querySelectorAll('.portfolio .photo');
 
-    // トグルボタンでドロップダウンを開閉
-    filterToggle.addEventListener('click', () => {
-      filterToggle.classList.toggle('open');
-      categoryNav.classList.toggle('open');
+    // アイコンクリックでポップオーバーを開閉
+    filterToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = filterPopover.classList.toggle('open');
+      filterToggleBtn.setAttribute('aria-expanded', isOpen);
     });
 
-    // 各カテゴリーボタンのクリックイベント
-    navButtons.forEach(btn => {
+    // フィルターボタンのクリック
+    popoverButtons.forEach(btn => {
       btn.addEventListener('click', () => {
-        navButtons.forEach(b => b.classList.remove('active'));
+        popoverButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const cat = btn.dataset.category;
-        const categoryLabel = btn.textContent;
+        const filter = btn.dataset.filter;
 
-        // 現在のフィルターテキストを更新
-        currentFilterText.textContent = categoryLabel;
+        // ドット表示（all以外のとき）
+        if (filter === 'all') {
+          filterToggleBtn.classList.remove('filtered');
+        } else {
+          filterToggleBtn.classList.add('filtered');
+        }
 
-        // フィルタリング
+        // 写真の表示切り替え
         photoElements.forEach(photo => {
-          const matches = cat === 'all'
-            || photo.dataset.year === cat
-            || photo.dataset.genre === cat;
-          photo.style.display = matches ? 'flex' : 'none';
+          if (filter === 'all') {
+            photo.style.display = 'flex';
+            return;
+          }
+          const year = photo.dataset.year;
+          const tags = (photo.dataset.tags || '').split(' ');
+          photo.style.display = (year === String(filter) || tags.includes(filter)) ? 'flex' : 'none';
         });
 
-        // ドロップダウンを自動で閉じる
-        filterToggle.classList.remove('open');
-        categoryNav.classList.remove('open');
+        // ポップオーバーを閉じる
+        filterPopover.classList.remove('open');
+        filterToggleBtn.setAttribute('aria-expanded', 'false');
 
         // 最初の表示要素にスクロール
-        const first = document.querySelector('.portfolio .photo[style*="display: flex"]');
-        if (first) first.scrollIntoView({behavior:'smooth', inline:'center'});
+        const first = document.querySelector('.portfolio .photo:not([style*="display: none"])');
+        if (first) first.scrollIntoView({ behavior: 'smooth', inline: 'center' });
       });
     });
 
-    // ドロップダウン外をクリックしたら閉じる
+    // ポップオーバー外クリックで閉じる
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.category-filter-wrapper')) {
-        filterToggle.classList.remove('open');
-        categoryNav.classList.remove('open');
+      if (!e.target.closest('.filter-toggle') && !e.target.closest('.filter-popover')) {
+        filterPopover.classList.remove('open');
+        filterToggleBtn.setAttribute('aria-expanded', 'false');
       }
     });
 
