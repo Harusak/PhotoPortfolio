@@ -1143,17 +1143,17 @@
   <!-- メインコンテンツ -->
   <main>
     <!-- フィルタートグル -->
-    <button class="filter-toggle" aria-label="フィルター">
+    <button class="filter-toggle" aria-label="フィルター" aria-expanded="false" aria-controls="filter-popover">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
       </svg>
       <span class="filter-dot"></span>
     </button>
-    <div class="filter-popover">
-      <button data-filter="all" class="active">All</button>
+    <div id="filter-popover" class="filter-popover">
+      <button type="button" data-filter="all" class="active">All</button>
       {% assign years = site.data.photos | map: "year" | uniq | sort %}
       {% for year in years %}
-        <button data-filter="{{ year }}">{{ year }}</button>
+        <button type="button" data-filter="{{ year }}">{{ year }}</button>
       {% endfor %}
       {% assign all_tags = "" | split: "" %}
       {% for photo in site.data.photos %}
@@ -1161,7 +1161,7 @@
       {% endfor %}
       {% assign unique_tags = all_tags | uniq | sort %}
       {% for tag in unique_tags %}
-        <button data-filter="{{ tag }}">{{ tag }}</button>
+        <button type="button" data-filter="{{ tag }}">{{ tag }}</button>
       {% endfor %}
     </div>
     <!-- ポートフォリオセクション -->
