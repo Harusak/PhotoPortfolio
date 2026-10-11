@@ -6,11 +6,12 @@ _site/
 .jekyll-cache/
 .jekyll-metadata
 
-# Bundler
-Gemfile.lock
 
 *.md
 !docs/**/*.md
 
 # Superpowers brainstorm sessions
 .superpowers/
+
+# Local secrets (Flickr API key)
+.env

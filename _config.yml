@@ -4,7 +4,11 @@ baseurl: "/PhotoPortfolio"
 # permalink: /blog/:title/  # 必要に応じてURL構造を変更
 
 exclude:
-  - docs/
+  - docs
+  - scripts
+  - flickr.config.json
+  - node_modules
   - Gemfile
   - Gemfile.lock
-
+  - error-*.md
+  - CLAUDE.md
