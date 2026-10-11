@@ -1,0 +1,20 @@
+{
+  "generatedAt": null,
+  "albums": [
+    {
+      "id": "sample",
+      "title": "Selected",
+      "description": "",
+      "count": 5,
+      "cover": { "src": "https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg", "full": "https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg", "w": 0, "h": 0 },
+      "photos": [
+        { "id": "53098018469", "title": "残影", "description": "", "taken": null, "tags": ["featured", "abstract", "monochrome"], "src": "https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg", "w": 0, "h": 0, "thumb": "https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg", "page": "" },
+        { "id": "54988921054", "title": "タイトル1", "description": "", "taken": null, "tags": ["portrait"], "src": "https://live.staticflickr.com/65535/54988921054_6c0a617fb4_b.jpg", "w": 0, "h": 0, "thumb": "https://live.staticflickr.com/65535/54988921054_6c0a617fb4_b.jpg", "page": "" },
+        { "id": "53324907283", "title": "タイトル2", "description": "", "taken": null, "tags": ["featured", "travel"], "src": "https://live.staticflickr.com/65535/53324907283_21ad32570c_h.jpg", "w": 0, "h": 0, "thumb": "https://live.staticflickr.com/65535/53324907283_21ad32570c_h.jpg", "page": "" },
+        { "id": "53325019104", "title": "タイトル3", "description": "", "taken": null, "tags": ["featured", "travel"], "src": "https://live.staticflickr.com/65535/53325019104_ccc4d609a1_h.jpg", "w": 0, "h": 0, "thumb": "https://live.staticflickr.com/65535/53325019104_ccc4d609a1_h.jpg", "page": "" },
+        { "id": "52901207351", "title": "タイトル4", "description": "", "taken": null, "tags": ["landscape"], "src": "https://live.staticflickr.com/65535/52901207351_ce67bc5509_k.jpg", "w": 0, "h": 0, "thumb": "https://live.staticflickr.com/65535/52901207351_ce67bc5509_k.jpg", "page": "" }
+      ]
+    }
+  ],
+  "featured": []
+}
