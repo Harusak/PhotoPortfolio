@@ -9,9 +9,13 @@ _site/
 
 *.md
 !docs/**/*.md
+!_posts/*.md
 
 # Superpowers brainstorm sessions
 .superpowers/
 
 # Local secrets (Flickr API key)
 .env
+
+# macOS
+.DS_Store

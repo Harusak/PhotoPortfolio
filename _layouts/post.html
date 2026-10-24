@@ -2,270 +2,877 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>{{ page.title }} | {{ site.title }}</title>
-  <!-- Tailwind CSS を CDN 経由で読み込み -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- レスポンシブ対応のメタタグ -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {%- assign post_cat = page.category | default: page.categories.first | downcase -%}
+  {%- case post_cat -%}{%- when 'travel', 'gear', 'news' -%}{%- assign post_label = post_cat | capitalize -%}{%- else -%}{%- assign post_label = '' -%}{%- endcase -%}
+  {%- assign post_cover = page.cover | default: page.image -%}
+  {%- assign post_lead = page.lead | default: page.description -%}
+  {%- unless post_lead -%}{%- assign post_lead = page.excerpt | strip_html | strip | truncate: 140 -%}{%- endunless -%}
+  {%- assign post_date = page.date | date: "%Y.%m.%d" %}
+  <title>{{ page.title | escape }} | {{ site.title }}</title>
+  {%- if post_lead != '' %}
+  <meta name="description" content="{{ post_lead | escape }}">
+  {%- endif %}
+  <script>
+    // 描画前にテーマと Depth of field を <html> へ適用（一覧と localStorage を共有）
+    (function () {
+      var t = 'light', d = 'on';
+      try {
+        if (localStorage.getItem('theme') === 'dark') t = 'dark';
+        if (localStorage.getItem('journal-dof') === 'off') d = 'off';
+      } catch (e) {}
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-dof', d);
+      document.documentElement.style.colorScheme = t;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body.dark {
-      background-color: #313131;
-      color: #f3f4f6;
+    /* テーマトークン（index.html と同じ） */
+    :root {
+      --bg: #e1dfda;
+      --ink: #1c1b19;
+      --sub: #5f5b55;
+      --rule: rgba(28, 27, 25, .14);
+      --line: rgba(28, 27, 25, .35);
+      --shadow: rgba(40, 35, 30, .45);
+      --serif: 'Instrument Serif', 'Shippori Mincho', serif;
+      --mincho: 'Shippori Mincho', serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --ease-move: cubic-bezier(.2, .7, .2, 1);
+      color-scheme: light;
     }
-    body.light {
-      background-color: #f3f4f6;
-      color: #1f2937;
+
+    html[data-theme="dark"] {
+      --bg: #161513;
+      --ink: #e4e1db;
+      --sub: #948f86;
+      --rule: rgba(228, 225, 219, .14);
+      --line: rgba(228, 225, 219, .35);
+      --shadow: rgba(0, 0, 0, .7);
+      color-scheme: dark;
     }
-    #image-container {
-      position: fixed;
-      z-index: 10;
-      transition: all 0.3s ease-in-out;
+
+    * {
+      box-sizing: border-box;
     }
-    #image-container.expanded {
-      top: 1rem;
-      left: 1rem;
-      right: 1rem;
-      height: calc(40vh - 2rem);
+
+    [hidden] {
+      display: none !important;
     }
-    #image-container.shrinked {
-      top: 1rem;
-      right: 1rem;
-      width: 33.3333%;
-      max-width: 24rem;
-      aspect-ratio: 16 / 9;
+
+    html {
+      background: var(--bg);
+      color: var(--ink);
+      transition: background-color .5s ease, color .5s ease;
+    }
+
+    html.lb-open {
+      overflow: hidden;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--mono);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: clip;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover,
+    button:hover {
+      opacity: .65;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    .meta {
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--sub);
+    }
+
+    /* 全体：JS なしは本文 1 カラム。JS が html.has-stage を付けると 2 カラム */
+    .post {
+      max-width: 716px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+
+    /* ヘッダー */
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      height: 80px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      font-family: var(--serif);
+      font-size: 26px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .crumb {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--sub);
+    }
+
+    .crumb-rule {
+      width: 1px;
+      height: .85em;
+      background: var(--line);
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--sub);
+    }
+
+    .site-nav .is-current {
+      color: var(--ink);
+    }
+
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      color: inherit;
+    }
+
+    .theme-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+      background: transparent;
+      transition: background .3s;
+    }
+
+    html[data-theme="dark"] .theme-dot {
+      background: currentColor;
+    }
+
+    .stage-nav {
+      display: none;
+    }
+
+    /* 記事頭 */
+    .post-head {
+      max-width: 620px;
+      padding-top: 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .post-meta {
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--sub);
+    }
+
+    .post-title {
+      margin: 0;
+      font-family: var(--mincho);
+      font-weight: 500;
+      font-size: clamp(32px, 3.2vw, 44px);
+      line-height: 1.3;
+      text-wrap: pretty;
+    }
+
+    .post-lead {
+      margin: 0;
+      font-family: var(--mincho);
+      font-size: 18px;
+      line-height: 1.9;
+      color: var(--sub);
+      text-wrap: pretty;
+    }
+
+    /* 機材・アルバム行 */
+    .post-gear {
+      max-width: 620px;
+      margin-top: 22px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+      padding: 14px 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    /* ステージ（JS なしでは cover を 1 枚だけ流す） */
+    .stage-col {
+      max-width: 620px;
+      padding-top: 40px;
+    }
+
+    .stage-fallback {
+      display: block;
+      width: 100%;
+    }
+
+    .stage,
+    .stage-bar {
+      display: none;
+    }
+
+    /* 本文 */
+    .post-body {
+      max-width: 620px;
+      padding-top: 48px;
+      font-family: var(--mincho);
+      font-size: 17px;
+      line-height: 2.05;
+    }
+
+    .post-body p {
+      margin: 0 0 1.4em;
+      text-align: justify;
+    }
+
+    .post-body h1,
+    .post-body h2 {
+      margin: 2em 0 .9em;
+      font-weight: 500;
+      font-size: 22px;
+      line-height: 1.5;
+    }
+
+    .post-body h3,
+    .post-body h4 {
+      margin: 1.8em 0 .6em;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .post-body > :first-child {
+      margin-top: 0;
+    }
+
+    .post-body a {
+      text-decoration: underline;
+      text-decoration-color: var(--line);
+      text-underline-offset: .25em;
+    }
+
+    .post-body ul,
+    .post-body ol {
+      margin: 0 0 1.4em;
+      padding-left: 1.4em;
+    }
+
+    .post-body blockquote {
+      margin: 0 0 1.4em;
+      padding-left: 1.2em;
+      border-left: 1px solid var(--line);
+      color: var(--sub);
+    }
+
+    .post-body code {
+      font-family: var(--mono);
+      font-size: .85em;
+    }
+
+    .post-body hr {
+      margin: 2.4em 0;
+      border: 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    .post-body img {
+      display: block;
+      max-width: 100%;
       height: auto;
     }
-    #image-overlay {
+
+    .post-photo {
+      margin: 0 0 1.8em;
+    }
+
+    .post-photo img {
+      width: 100%;
+    }
+
+    .post-photo figcaption {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--sub);
+    }
+
+    /* 写真マーカー */
+    .photo-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: .4em 0 1.8em;
+      padding: 0;
+      min-height: 24px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 10px;
+      line-height: 1;
+      letter-spacing: .14em;
+      color: var(--sub);
+    }
+
+    .photo-mark::before {
+      content: '';
+      width: 28px;
+      height: 1px;
+      background: var(--line);
+    }
+
+    /* 末尾 */
+    .post-foot {
+      max-width: 620px;
+      margin-top: 40px;
+      padding: 28px 0 140px;
+      border-top: 1px solid var(--rule);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 1px solid var(--line);
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    /* ---------- デスクトップ 2 カラム（ピント送り） ---------- */
+    @media (min-width: 760px) {
+      html.has-stage .post {
+        max-width: 1600px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+        grid-template-rows: auto auto auto auto 1fr;
+        column-gap: 56px;
+      }
+
+      html.has-stage .post-header,
+      html.has-stage .post-head,
+      html.has-stage .post-gear,
+      html.has-stage .post-body,
+      html.has-stage .post-foot {
+        grid-column: 1;
+      }
+
+      html.has-stage .post-foot {
+        align-self: start;
+      }
+
+      html.has-stage .post-header .site-nav {
+        display: none;
+      }
+
+      html.has-stage .stage-col {
+        grid-column: 2;
+        grid-row: 1 / -1;
+        position: sticky;
+        top: 0;
+        align-self: start;
+        max-width: none;
+        height: 100vh;
+        min-height: 560px;
+        padding: 0 0 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        min-width: 0;
+      }
+
+      html.has-stage .stage-nav {
+        display: flex;
+        justify-content: flex-end;
+        height: 80px;
+        flex-shrink: 0;
+      }
+    }
+
+    html.has-stage .stage {
+      display: block;
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    html.has-stage .stage-bar {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .stage-cap {
+      font-family: var(--mincho);
+      font-size: 14px;
+      color: var(--sub);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stage-ticks {
+      display: flex;
+      gap: 8px;
+    }
+
+    .stage-ticks span {
+      width: 20px;
+      height: 1px;
+      background: var(--ink);
+      opacity: .25;
+      transition: opacity .6s;
+    }
+
+    .stage-ticks span.is-on {
+      opacity: 1;
+    }
+
+    /* 写真の重なり（d = 写真 index − 現在 index。-1 は通過済、2 は 2 枚以上先） */
+    .stage-photo {
       position: absolute;
       inset: 0;
-      background-color: rgba(0, 0, 0, 0.3);
-      transition: background-color 0.3s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: filter .9s ease, opacity .9s ease, transform 1s var(--ease-move);
     }
-    #image-wrapper {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      transition: all 0.3s ease-in-out;
+
+    .stage-photo img {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      box-shadow: 0 40px 80px -30px var(--shadow);
     }
-    #image-wrapper.backdrop {
-      backdrop-filter: blur(4px);
-      background-opacity: 0.7;
+
+    .stage-photo[data-d="0"] {
+      transform: none;
+      filter: blur(0);
+      opacity: 1;
+      z-index: 5;
+      pointer-events: auto;
+      cursor: zoom-in;
     }
-    #content {
-      position: relative;
-      z-index: 0;
-      height: 100%;
-      overflow-y: auto;
-      padding-top: calc(40vh + 1rem);
-      padding-bottom: 4rem;
+
+    .stage-photo[data-d="1"] {
+      transform: translate(5%, -4%) scale(.9);
+      filter: blur(7px);
+      opacity: .3;
+      z-index: 4;
     }
-    /* ナビゲーションバーのスタイル */
-    nav {
+
+    .stage-photo[data-d="2"] {
+      transform: translate(8%, -6%) scale(.84);
+      filter: blur(10px);
+      z-index: 3;
+    }
+
+    .stage-photo[data-d="-1"] {
+      transform: translate(-3%, 4%) scale(1.05);
+      filter: blur(10px);
+      z-index: 6;
+    }
+
+    /* Depth of field Off：ボケなし、現在の写真だけ表示（入れ替えのみ） */
+    html[data-dof="off"] .stage-photo {
+      filter: none;
+    }
+
+    html[data-dof="off"] .stage-photo[data-d="1"] {
+      opacity: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stage-photo {
+        transform: none !important;
+      }
+    }
+
+    /* ---------- ポップアップ（ギャラリーと同じホログラム） ---------- */
+    .lightbox {
       position: fixed;
-      bottom: 1rem;
+      inset: 0;
+      z-index: 100;
+      background: rgba(20, 19, 17, .9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      cursor: zoom-out;
+    }
+
+    .lb-frame {
+      position: absolute;
       left: 50%;
-      transform: translateX(-50%);
+      top: 50%;
+      margin-top: -28px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, .5);
+      transform: translate(-50%, -50%);
+      transition: transform .1s ease;
+    }
+
+    .lb-frame img {
+      display: block;
+      max-width: min(92vw, 1600px);
+      max-height: 78vh;
+    }
+
+    .lb-holo,
+    .lb-glare {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      mix-blend-mode: soft-light;
+    }
+
+    .lb-holo {
+      background: linear-gradient(115deg, transparent 0%, rgba(0, 231, 255, .10) 20%, rgba(102, 126, 234, .15) 40%, rgba(235, 139, 255, .15) 60%, rgba(0, 231, 255, .10) 80%, transparent 100%);
+    }
+
+    .lb-glare {
+      background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .25) 0%, rgba(255, 255, 255, .15) 20%, transparent 50%);
+    }
+
+    .lb-bar {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 24px;
       display: flex;
       justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px 28px;
       align-items: center;
-      padding: 0.5rem;
-      background-color: rgba(255, 255, 255, 0.7);
-      border-radius: 9999px;
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(4px);
-      z-index: 10;
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: #a9a49b;
     }
-    body.dark nav {
-      background-color: rgba(49, 49, 49, 0.7);
+
+    .lb-title {
+      font-family: var(--mincho);
+      font-size: 17px;
+      letter-spacing: 0;
+      text-transform: none;
+      color: #e4e1db;
+      text-align: center;
     }
-    nav .button {
-      padding: 0.5rem;
-      margin: 0 0.5rem;
-      border-radius: 9999px;
+
+    .lb-flickr {
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: inherit;
-      background-color: transparent;
-      transition: background-color 0.2s ease-in-out;
+      gap: 10px;
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid rgba(228, 225, 219, .35);
+      color: #e4e1db;
+      transition: background .25s, color .25s;
     }
-    nav .button:hover {
-      background-color: rgba(0, 0, 0, 0.1);
+
+    .lb-flickr:hover {
+      background: #e4e1db;
+      color: #1c1b19;
+      opacity: 1;
     }
-    body.dark nav .button:hover {
-      background-color: rgba(255, 255, 255, 0.1);
+
+    .lb-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(228, 225, 219, .3);
+      background: none;
+      color: #e4e1db;
+      cursor: pointer;
+      font-size: 18px;
     }
-    nav .button.active {
-      background-color: rgba(0, 0, 0, 0.2);
-    }
-    body.dark nav .button.active {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
-    nav .button svg {
-      width: 1.5rem;
-      height: 1.5rem;
+
+    /* ---------- モバイル（760px 未満）：ステージを上に固定 ---------- */
+    @media (max-width: 759px) {
+      .wide-only {
+        display: none !important;
+      }
+
+      .post {
+        max-width: none;
+        padding: 0;
+      }
+
+      .post-header {
+        height: auto;
+        gap: 12px;
+        padding: 20px;
+      }
+
+      .brand {
+        gap: 10px;
+        font-size: 20px;
+      }
+
+      .crumb {
+        gap: 10px;
+      }
+
+      .site-nav {
+        gap: 18px;
+      }
+
+      .theme-toggle {
+        justify-content: center;
+        width: 32px;
+        height: 44px;
+        margin: -14px -10px -14px 0;
+      }
+
+      .post-head {
+        max-width: none;
+        padding: 12px 20px 24px;
+        gap: 16px;
+      }
+
+      .post-meta {
+        font-size: 10px;
+      }
+
+      .post-title {
+        font-size: 30px;
+        line-height: 1.35;
+      }
+
+      .post-lead {
+        font-size: 16px;
+        line-height: 1.85;
+      }
+
+      .stage-col {
+        max-width: none;
+        padding: 0 20px;
+      }
+
+      html.has-stage .stage-col {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        height: clamp(240px, 40vh, 360px);
+        padding: 12px 20px;
+        background: var(--bg);
+        border-bottom: 1px solid var(--rule);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: background-color .5s;
+      }
+
+      html.has-stage .stage-bar {
+        gap: 12px;
+      }
+
+      .stage-bar .meta {
+        letter-spacing: .12em;
+      }
+
+      .stage-cap {
+        font-size: 12px;
+      }
+
+      .stage-ticks {
+        gap: 6px;
+      }
+
+      .stage-ticks span {
+        width: 12px;
+      }
+
+      .stage-photo img {
+        box-shadow: 0 24px 48px -24px var(--shadow);
+      }
+
+      .post-gear {
+        max-width: none;
+        margin: 20px 20px 0;
+        padding: 0 0 12px;
+        gap: 6px 16px;
+        border-top: 0;
+        letter-spacing: .12em;
+      }
+
+      .post-body {
+        max-width: none;
+        padding: 28px 20px 0;
+        font-size: 16px;
+      }
+
+      .post-body h1,
+      .post-body h2 {
+        margin: 2em 0 .8em;
+        font-size: 20px;
+      }
+
+      .photo-mark {
+        gap: 10px;
+        margin: .2em 0 1.6em;
+      }
+
+      .photo-mark::before {
+        width: 20px;
+      }
+
+      .post-foot {
+        max-width: none;
+        margin: 32px 20px 0;
+        padding: 20px 0 96px;
+        gap: 12px;
+        flex-wrap: nowrap;
+      }
+
+      .btn-back {
+        padding: 0 16px;
+      }
+
+      .post-foot .meta {
+        letter-spacing: .12em;
+      }
     }
   </style>
 </head>
-<body id="body" class="h-screen flex flex-col {% if page.theme %}{{ page.theme }}{% else %}light{% endif %}">
-  <main class="flex-1 relative overflow-hidden">
-    <!-- 固定された画像コンテナ -->
-    <div id="image-container" class="expanded">
-      <!-- 画像ラッパー -->
-      <div id="image-wrapper">
-        <!-- 画像 -->
-        <img src="{{ page.image }}" alt="{{ page.title }}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out">
-        <div id="image-overlay"></div>
+<body>
+  <div class="post">
+    <!-- ヘッダー（デスクトップの 2 カラム時は nav をステージ側に出す） -->
+    <header class="post-header">
+      <div class="brand">
+        <a href="{{ '/' | relative_url }}">Hal Sakaguchi</a>
+        <span class="crumb"><span class="crumb-rule"></span><a href="{{ '/' | relative_url }}#/journal">Journal</a></span>
       </div>
+      <nav class="site-nav">
+        <a href="{{ '/' | relative_url }}">Gallery</a>
+        <a href="{{ '/' | relative_url }}#/journal" class="is-current wide-only">Journal</a>
+        <a href="{{ '/' | relative_url }}#/about">About</a>
+        <a href="https://www.instagram.com/saka.hal_" target="_blank" rel="noopener noreferrer" class="wide-only">IG</a>
+        <button type="button" class="theme-toggle" aria-label="ライト／ダーク切り替え">
+          <span class="theme-dot"></span><span class="theme-label wide-only">Light</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- 記事頭 -->
+    <div class="post-head">
+      <span class="post-meta">{% if post_label != '' %}{{ post_label }} — {% endif %}{{ post_date }}</span>
+      <h1 class="post-title">{{ page.title | escape }}</h1>
+      {%- if post_lead != '' %}
+      <p class="post-lead">{{ post_lead | escape }}</p>
+      {%- endif %}
     </div>
-    <!-- スクロール可能なコンテンツエリア -->
-    <div id="content">
-      <!-- 記事コンテンツ -->
-      <article class="bg-stone-50 dark:bg-stone-800 p-6 md:p-8 min-h-screen rounded-t-3xl">
-        <!-- テキストコンテンツ -->
-        <div class="prose dark:prose-invert max-w-none">
-          <h1 class="text-3xl md:text-4xl font-bold mb-4">{{ page.title }}</h1>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">{{ page.date | date: "%Y年%-m月%-d日" }}</p>
 
-          {{ content }}
+    <!-- ステージ（写真のピント送り）。中身は post.js が組み立てる -->
+    <aside class="stage-col" id="stage-col"{% unless post_cover %} hidden{% endunless %}>
+      <nav class="site-nav stage-nav">
+        <a href="{{ '/' | relative_url }}">Gallery</a>
+        <a href="{{ '/' | relative_url }}#/journal" class="is-current">Journal</a>
+        <a href="{{ '/' | relative_url }}#/about">About</a>
+        <a href="https://www.instagram.com/saka.hal_" target="_blank" rel="noopener noreferrer">IG</a>
+        <button type="button" class="theme-toggle" aria-label="ライト／ダーク切り替え">
+          <span class="theme-dot"></span><span class="theme-label">Light</span>
+        </button>
+      </nav>
+      <div class="stage" id="stage"{% if post_cover %} data-cover="{{ post_cover | escape }}" data-cover-thumb="{{ page.cover_thumb | escape }}" data-cover-page="{{ page.cover_page | escape }}" data-cover-caption="{{ page.cover_caption | escape }}"{% endif %}></div>
+      {%- if post_cover %}
+      <img class="stage-fallback" src="{{ post_cover | escape }}" alt="{{ page.cover_caption | default: page.title | escape }}" decoding="async">
+      {%- endif %}
+      <div class="stage-bar">
+        <span class="meta" id="stage-no"></span>
+        <span class="stage-cap" id="stage-cap"></span>
+        <span class="stage-ticks" id="stage-ticks"></span>
+      </div>
+    </aside>
 
-        </div>
-      </article>
+    {%- assign post_gear = '' -%}
+    {%- if page.camera and page.lens -%}{%- assign post_gear = page.camera | append: ' · ' | append: page.lens -%}
+    {%- elsif page.camera -%}{%- assign post_gear = page.camera -%}
+    {%- elsif page.lens -%}{%- assign post_gear = page.lens -%}{%- endif -%}
+    {%- if post_gear != '' or page.album %}
+    <!-- 機材・アルバム行 -->
+    <div class="post-gear meta">
+      <span>{{ post_gear | escape }}</span>
+      {%- if page.album %}
+      <a href="{{ page.album.url | escape }}" target="_blank" rel="noopener">Album<span class="wide-only"> — {{ page.album.name | escape }}</span> ↗</a>
+      {%- endif %}
     </div>
-  </main>
+    {%- endif %}
 
-  <!-- ナビゲーション -->
-  <nav>
-    <button class="button active" id="btn-portfolio" aria-label="Portfolio" data-target="{{ '/' | relative_url }}">
-      <!-- Home アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 3l7 6v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V15H10v7a1 1 0 01-1 1H5a1 1 0 01-1-1V9l7-6z"/>
-      </svg>
-    </button>
-    <button class="button" id="btn-blog" aria-label="Blog" data-target="{{ '/' | relative_url }}#/journal">
-      <!-- Book アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M19 2H8a2 2 0 00-2 2v16l4-4h9a2 2 0 002-2V4a2 2 0 00-2-2z"/>
-      </svg>
-    </button>
-    <button class="button" id="btn-about" aria-label="About" data-target="{{ '/' | relative_url }}#/about">
-      <!-- User アイコンのSVG -->
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V21h19.2v-1.8c0-3.2-6.4-4.8-9.6-4.8z"/>
-      </svg>
-    </button>
-    <button class="button theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
-      <!-- Moon アイコン -->
-      <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" style="display: none;">
-        <path d="M21.752 15.002A9 9 0 1111.998 2a7 7 0 109.754 13.002z"/>
-      </svg>
-      <!-- Sun アイコン -->
-      <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 4.5V2m0 20v-2.5m5.303-17.303l-1.768-1.768m-14.142 0l1.768 1.768M22 12h-2.5M4.5 12H2m17.303 5.303l-1.768 1.768M6.464 6.464l-1.768-1.768"/>
-        <circle cx="12" cy="12" r="5"/>
-      </svg>
-    </button>
-  </nav>
+    <!-- 本文 -->
+    <article class="post-body" id="post-body">
+      {{ content }}
+    </article>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // 状態変数
-      let isDarkMode = {% if page.theme == 'dark' %}true{% else %}false{% endif %};
-      let isImageExpanded = true;
-      let scrollPosition = 0;
+    <!-- 末尾 -->
+    <div class="post-foot">
+      <a href="{{ '/' | relative_url }}#/journal" class="btn-back">← Journal</a>
+      <span class="meta">{{ post_date }}{% if post_label != '' %}<span class="wide-only"> · {{ post_label }}</span>{% endif %}</span>
+    </div>
+  </div>
 
-      // 要素の取得
-      const body = document.getElementById('body');
-      const imageContainer = document.getElementById('image-container');
-      const imageWrapper = document.getElementById('image-wrapper');
-      const imageOverlay = document.getElementById('image-overlay');
-      const content = document.getElementById('content');
-      const themeToggleButton = document.getElementById('theme-toggle');
-      const iconMoon = document.getElementById('icon-moon');
-      const iconSun = document.getElementById('icon-sun');
-      const navButtons = document.querySelectorAll('nav .button');
+  <!-- ホログラムポップアップ -->
+  <div class="lightbox" id="lightbox" hidden>
+    <div class="lb-frame" id="lb-frame">
+      <img id="lb-img" alt="">
+      <div class="lb-holo"></div>
+      <div class="lb-glare" id="lb-glare"></div>
+    </div>
+    <div class="lb-bar">
+      <span class="lb-title" id="lb-title"></span>
+      <a class="lb-flickr" id="lb-flickr" href="#" target="_blank" rel="noopener"><span>View on Flickr</span><span>↗</span></a>
+      <span class="wide-only">ESC で閉じる</span>
+    </div>
+    <button type="button" class="lb-close" id="lb-close" aria-label="閉じる">×</button>
+  </div>
 
-      // ローカルストレージからテーマを取得
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      isDarkMode = (savedTheme === 'dark');
-      updateTheme();
-
-      // スクロールイベントのリスナー
-      content.addEventListener('scroll', function() {
-        scrollPosition = content.scrollTop;
-        if (scrollPosition > 100 && isImageExpanded) {
-          isImageExpanded = false;
-          updateImageContainer();
-        }
-      });
-
-      // 画像クリック時のイベントリスナー
-      imageWrapper.addEventListener('click', function() {
-        isImageExpanded = !isImageExpanded;
-        updateImageContainer();
-      });
-
-      // テーマを更新する関数
-      function updateTheme() {
-        if (isDarkMode) {
-          body.classList.remove('light');
-          body.classList.add('dark');
-          iconMoon.style.display = 'none';
-          iconSun.style.display = 'block';
-        } else {
-          body.classList.remove('dark');
-          body.classList.add('light');
-          iconMoon.style.display = 'block';
-          iconSun.style.display = 'none';
-        }
-        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-      }
-
-      // テーマを切り替える関数
-      function toggleTheme() {
-        isDarkMode = !isDarkMode;
-        updateTheme();
-      }
-
-      // 画像コンテナを更新する関数
-      function updateImageContainer() {
-        if (isImageExpanded) {
-          imageContainer.classList.remove('shrinked');
-          imageContainer.classList.add('expanded');
-          imageOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-          imageWrapper.classList.remove('backdrop');
-        } else {
-          imageContainer.classList.remove('expanded');
-          imageContainer.classList.add('shrinked');
-          imageOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
-          imageWrapper.classList.add('backdrop');
-          imageContainer.style.aspectRatio = '16 / 9';
-          imageContainer.style.height = 'auto';
-        }
-      }
-
-      // 各ボタンにクリックイベントを設定
-      navButtons.forEach(button => {
-        button.addEventListener('click', function () {
-          const targetUrl = button.getAttribute('data-target'); // data-target属性を取得
-          if (targetUrl) {
-            window.location.href = targetUrl; // 対象ページに遷移
-          }
-        });
-      });
-
-      // 初期化
-      updateImageContainer();
-
-      // テーマ切り替えボタンのイベントリスナー
-      if (themeToggleButton) {
-        themeToggleButton.addEventListener('click', toggleTheme);
-      }
-    });
-  </script>
+  <script src="{{ '/assets/js/post.js' | relative_url }}" defer></script>
 </body>
 </html>
