@@ -58,6 +58,20 @@ album:
 
 Markdown の画像記法でも写真になる。[ ] の中がキャプションになる。ただし、この形は段落に画像 1 枚だけを置いたときに限る。Flickr の _b や _c の URL なら、モバイル用の中サイズを自動で作る。_k の URL だと中サイズを作れずモバイルでも大サイズを読み込むので、通常は include を使うほうがよい。
 
+### 図・スクリーンショット（リポジトリ内の画像）
+
+Flickr に上げない画像（技術説明の図、スクリーンショットなど）は assets/posts/YYYY-MM-DD-slug/ に置き、写真と同じ書き方で使える。ステージに写真と同じように出る（View on Flickr ボタンは出ない）。
+
+{% include photo.html
+   src="/assets/posts/2026-10-04-tainan/route.webp"
+   caption="歩いたルート。" %}
+
+include の src / thumb（と front matter の cover / thumb / cover_thumb）は /assets/… と書けば baseurl（/PhotoPortfolio）が自動で付く。Markdown 記法で書くときは自動では付かないので、URL を {% raw %}{{ '…' | relative_url }}{% endraw %} で囲む：
+
+![歩いたルート。]({{ '/assets/posts/2026-10-04-tainan/route.webp' | relative_url }})
+
+画像は WebP / PNG / SVG にし、1 枚数百 KB 程度に収める（長辺 2000px 前後で十分）。SVG は width / height 属性を付けておく（無いと小さく表示されることがある）。
+
 その他の書き方：**強調**、[リンク](https://www.flickr.com/)、`コード`。
 
 > 引用は > で始める。

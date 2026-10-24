@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {%- assign post_cat = page.category | default: page.categories.first | downcase -%}
   {%- case post_cat -%}{%- when 'travel', 'gear', 'news' -%}{%- assign post_label = post_cat | capitalize -%}{%- else -%}{%- assign post_label = '' -%}{%- endcase -%}
-  {%- assign post_cover = page.cover | default: page.image -%}
+  {%- assign post_cover = page.cover | default: page.image | relative_url -%}
+  {%- assign post_cover_thumb = page.cover_thumb | relative_url -%}
   {%- assign post_lead = page.lead | default: page.description -%}
   {%- unless post_lead -%}{%- assign post_lead = page.excerpt | strip_html | strip | truncate: 140 -%}{%- endunless -%}
   {%- assign post_date = page.date | date: "%Y.%m.%d" %}
@@ -821,7 +822,7 @@
           <span class="theme-dot"></span><span class="theme-label">Light</span>
         </button>
       </nav>
-      <div class="stage" id="stage"{% if post_cover %} data-cover="{{ post_cover | escape }}" data-cover-thumb="{{ page.cover_thumb | escape }}" data-cover-page="{{ page.cover_page | escape }}" data-cover-caption="{{ page.cover_caption | escape }}"{% endif %}></div>
+      <div class="stage" id="stage"{% if post_cover %} data-cover="{{ post_cover | escape }}" data-cover-thumb="{{ post_cover_thumb | escape }}" data-cover-page="{{ page.cover_page | escape }}" data-cover-caption="{{ page.cover_caption | escape }}"{% endif %}></div>
       {%- if post_cover %}
       <img class="stage-fallback" src="{{ post_cover | escape }}" alt="{{ page.cover_caption | default: page.title | escape }}" decoding="async">
       {%- endif %}

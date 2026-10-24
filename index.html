@@ -1058,8 +1058,8 @@
       {% for post in jposts limit: 3 %}
         {% assign jc = post.category | default: post.categories.first | downcase %}
         {% case jc %}{% when 'travel', 'gear', 'news' %}{% assign jlabel = jc | capitalize %}{% else %}{% assign jlabel = '' %}{% endcase %}
-        {% assign jcover = post.cover | default: post.image %}
-        {% assign jthumb = post.thumb | default: jcover %}
+        {% assign jcover = post.cover | default: post.image | relative_url %}
+        {% assign jthumb = post.thumb | relative_url | default: jcover %}
         {% if forloop.first %}
       <a class="j-hero-card j-main" href="{{ post.url | relative_url }}">
         {% if jcover %}<img src="{{ jcover }}" alt="{{ post.title | escape }}" decoding="async">{% endif %}
@@ -1114,8 +1114,8 @@
           {% endif %}
           {% assign jc = post.category | default: post.categories.first | downcase %}
           {% case jc %}{% when 'travel', 'gear', 'news' %}{% assign jlabel = jc | capitalize %}{% else %}{% assign jc = '' %}{% assign jlabel = '' %}{% endcase %}
-          {% assign jcover = post.cover | default: post.image %}
-          {% assign jthumb = post.thumb | default: jcover %}
+          {% assign jcover = post.cover | default: post.image | relative_url %}
+          {% assign jthumb = post.thumb | relative_url | default: jcover %}
             <a class="j-card" href="{{ post.url | relative_url }}" data-year="{{ y }}" data-category="{{ jc }}" data-index="{{ forloop.index0 | plus: 3 }}">
               <img src="{{ jthumb }}" alt="{{ post.title | escape }}" loading="lazy" decoding="async">
               <span class="j-meta">{{ post.date | date: "%Y.%m.%d" }}{% if jlabel != '' %} · {{ jlabel }}{% endif %}</span>
