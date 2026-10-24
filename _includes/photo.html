@@ -1,0 +1,11 @@
+{%- comment -%}
+  本文中の写真。JS が有効なら番号マーカーに置き換わり、写真はステージ側に出る。
+  引数：src（大サイズ・必須）／thumb（中サイズ）／page（Flickr の写真ページ）／caption
+{%- endcomment -%}
+{%- assign photo_thumb = include.thumb | default: include.src -%}
+<figure class="post-photo" data-full="{{ include.src | escape }}" data-thumb="{{ photo_thumb | escape }}" data-page="{{ include.page | escape }}" data-caption="{{ include.caption | escape }}">
+  <img src="{{ photo_thumb | escape }}" alt="{{ include.caption | escape }}" loading="lazy" decoding="async">
+  {%- if include.caption %}
+  <figcaption>{{ include.caption | escape }}</figcaption>
+  {%- endif %}
+</figure>
