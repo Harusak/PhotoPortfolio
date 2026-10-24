@@ -16,3 +16,6 @@ _site/
 
 # Local secrets (Flickr API key)
 .env
+
+# macOS
+.DS_Store
