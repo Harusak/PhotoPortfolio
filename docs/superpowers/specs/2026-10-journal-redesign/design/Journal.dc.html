@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg,#e1dfda);color:var(--ink,#1c1b19);font-family:'IBM Plex Mono',monospace;-webkit-font-smoothing:antialiased;transition:background-color .5s ease}
+a{color:inherit;text-decoration:none}
+a:hover{opacity:.65}
+button{font:inherit;color:inherit}
+</style>
+</helmet>
+<div data-screen-label="Journal" style="min-height:100vh;background:var(--bg,#e1dfda);transition:background-color .5s;overflow-x:hidden">
+  <header style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;padding:24px 48px">
+    <div style="display:flex;align-items:baseline;gap:12px;font-family:'Instrument Serif','Shippori Mincho',serif;font-size:26px;line-height:1;white-space:nowrap">
+      <a href="#">Hal Sakaguchi</a>
+      <span style="display:flex;align-items:center;gap:12px;color:var(--sub,#5f5b55)"><span style="width:1px;height:0.85em;background:var(--line,rgba(28,27,25,0.35))"></span><span>Journal</span></span>
+    </div>
+    <nav style="display:flex;gap:32px;align-items:center;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--sub,#5f5b55)">
+      <a href="#">Gallery</a><a href="#" style="color:var(--ink,#1c1b19)">Journal</a><a href="#">About</a><a href="#">IG</a>
+      <button onClick="{{ toggleTheme }}" style="display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;letter-spacing:inherit;text-transform:inherit;color:inherit"><span style="width:9px;height:9px;border-radius:50%;border:1px solid currentColor;background:{{ dotBg }}"></span><span>{{ themeLabel }}</span></button>
+    </nav>
+  </header>
+  <section onMouseMove="{{ heroMove }}" onMouseLeave="{{ heroLeave }}" style="height:min(720px,58vw);min-height:420px;padding:8px 48px 24px;display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:24px">
+    <a href="{{ main.href }}" onMouseEnter="{{ main.enter }}" style="position:relative;display:block;overflow:hidden;opacity:{{ main.op }};filter:{{ main.flt }};transform:{{ main.tr }};transition:filter .9s ease, opacity .9s ease, transform 1s cubic-bezier(.2,.7,.2,1)">
+      <img src="{{ main.full }}" alt="{{ main.title }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(12,11,10,0.7) 0%, rgba(12,11,10,0) 55%)"></div>
+      <div style="position:absolute;left:36px;right:36px;bottom:32px;display:flex;flex-direction:column;gap:12px;color:#f2efe9">
+        <span style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase">Latest — {{ main.tag }} — {{ main.date }}</span>
+        <span style="font-family:'Shippori Mincho',serif;font-size:clamp(28px,3.4vw,48px);line-height:1.2;text-wrap:pretty">{{ main.title }}</span>
+      </div>
+    </a>
+    <div style="display:flex;flex-direction:column;gap:20px;min-height:0">
+      <sc-for list="{{ side }}" as="c" hint-placeholder-count="2">
+        <a href="{{ c.href }}" onMouseEnter="{{ c.enter }}" style="flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;opacity:{{ c.op }};filter:{{ c.flt }};transform:{{ c.tr }};transition:filter .9s ease, opacity .9s ease, transform 1s cubic-bezier(.2,.7,.2,1)">
+          <img src="{{ c.thumb }}" alt="{{ c.title }}" style="flex:1;min-height:0;width:100%;object-fit:cover;display:block">
+          <span style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--sub,#5f5b55)">{{ c.date }} · {{ c.tag }}</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:20px;line-height:1.35">{{ c.title }}</span>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+  <section style="padding:56px 48px 96px;display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;padding-bottom:12px">
+      <h2 style="margin:0;font-family:'Instrument Serif','Shippori Mincho',serif;font-weight:400;font-size:48px;line-height:1">Archive</h2>
+      <span style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--sub,#5f5b55)">{{ readout }}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px 24px;border-bottom:1px solid var(--rule,rgba(28,27,25,0.14))">
+      <div style="display:flex;gap:28px;align-items:center">
+        <span style="font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--sub,#5f5b55);opacity:.7">Filter</span>
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.go }}" style="display:flex;gap:8px;align-items:baseline;background:none;border:0;border-bottom:1px solid {{ t.bd }};margin-bottom:-1px;padding:14px 0;cursor:pointer;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:{{ t.col }}"><span>{{ t.label }}</span><span style="font-size:10px">{{ t.n }}</span></button></sc-for>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;padding-bottom:6px">
+        <span style="font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--sub,#5f5b55);opacity:.7;margin-right:10px">Depth of field</span>
+        <sc-for list="{{ dofOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.go }}" style="min-height:32px;padding:0 14px;background:{{ o.bg }};border:1px solid var(--line,rgba(28,27,25,0.35));cursor:pointer;font-size:11px;letter-spacing:0.08em;color:{{ o.col }};transition:background .25s, color .25s">{{ o.label }}</button></sc-for>
+      </div>
+    </div>
+    <div ref="{{ fieldRef }}" style="display:flex;flex-direction:column">
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+        <div onMouseEnter="{{ g.enter }}" onMouseMove="{{ g.move }}" onMouseLeave="{{ g.leave }}" style="display:flex;flex-direction:column;gap:24px;padding-top:40px">
+          <div style="display:flex;align-items:baseline;gap:16px">
+            <span style="font-family:'Instrument Serif',serif;font-size:36px;line-height:1;color:{{ g.col }};transition:color .4s">{{ g.year }}</span>
+            <span style="flex:1;height:1px;background:var(--rule,rgba(28,27,25,0.14))"></span>
+            <span style="font-size:10px;letter-spacing:0.14em;color:var(--sub,#5f5b55)">{{ g.n }}</span>
+          </div>
+          <div style="display:flex;gap:24px;align-items:flex-start">
+            <sc-for list="{{ g.cols }}" as="col" hint-placeholder-count="4">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:32px">
+                <sc-for list="{{ col.items }}" as="c" hint-placeholder-count="3">
+                  <a href="{{ c.href }}" onMouseEnter="{{ c.enter }}" style="display:flex;flex-direction:column;gap:10px;opacity:{{ c.op }};filter:{{ c.flt }};transform:{{ c.tr }};transition:filter .5s ease, opacity .5s ease, transform .8s cubic-bezier(.2,.7,.2,1)">
+                    <img src="{{ c.thumb }}" alt="{{ c.title }}" loading="lazy" style="width:100%;aspect-ratio:{{ c.ar }};object-fit:cover;display:block;background:var(--rule,rgba(28,27,25,0.14));box-shadow:0 24px 48px -30px var(--shadow,rgba(40,35,30,0.45))">
+                    <span style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--sub,#5f5b55)">{{ c.date }} · {{ c.tag }}</span>
+                    <span style="font-family:'Shippori Mincho',serif;font-size:18px;line-height:1.45;text-wrap:pretty">{{ c.title }}</span>
+                  </a>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;parallax&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Depth&quot;}}">
+const IMS = "55572708128_bf55d44924_57ccf0ff71 55573018170_b2140417d1_8b2d094bd0 55572708113_3faae83a39_d8d69e3f0b 55572761309_88f74974a6_2d9662d700 55573018145_38fa068926_672d2f4f42 55572708088_8df47bfbe1_cf8afbd04e 55572708023_1e66c581fe_2afdb9483d 55572708008_dc551e203e_7e1b2db070 55571566062_7d8f4efe1a_f14e456edd 55572599226_bc1f73bd79_02ed4db9f0 55573018030_37809164e9_e88e92966f 55571566017_22352078d5_c14e210c31 55572707988_39924a5a65_415da112ca 55572707888_b47ff7f838_c25e5769fa".split(" ").map(s => { const [id, a, b] = s.split("_"); const u = "https://live.staticflickr.com/65535/" + id; return { t: `${u}_${a}_c.jpg`, f: `${u}_${b}_k.jpg` }; });
+["53098018469_eb8b162a71_k", "54988921054_6c0a617fb4_b", "53324907283_21ad32570c_h", "53325019104_ccc4d609a1_h", "52901207351_ce67bc5509_k"].forEach(s => { const u = `https://live.staticflickr.com/65535/${s}.jpg`; IMS.push({ t: u, f: u }); });
+const TAGS = { T: "Travel", G: "Gear", N: "News" };
+const RAW = `2026-10-04|T|台南、路地の午後
+2026-09-21|G|35mm 単焦点に戻った理由
+2026-09-08|T|霧の上高地、朝五時
+2026-08-17|N|写真展「残影」開催のお知らせ
+2026-07-30|T|竹富島の白い道
+2026-07-02|G|フィルムシミュレーション設定 2026
+2026-06-14|T|鎌倉、紫陽花の終わり
+2026-05-03|T|しまなみ海道を走る
+2026-03-22|G|雨天撮影の装備メモ
+2026-02-11|T|白川郷、雪の夜
+2026-01-05|N|サイトをリニューアルしました
+2025-12-14|T|函館、夜景の外側
+2025-11-02|T|金沢、早朝の東山
+2025-10-12|G|RAW 現像のワークフロー
+2025-09-06|T|佐渡、たらい舟
+2025-08-15|T|屋久島、苔と光
+2025-07-19|N|ZINE 第2号 頒布について
+2025-06-01|G|三脚を軽くした話
+2025-05-04|T|尾道の坂と猫
+2025-03-30|T|ソウル、乙支路の看板
+2025-02-16|G|夜景の露出、覚え書き
+2025-01-12|T|釧路湿原で待った一時間
+2024-12-01|T|台北、夜市の湯気
+2024-10-20|N|グループ展に参加します
+2024-09-14|G|旅に持っていくレンズ 3 本
+2024-08-03|T|小豆島、フェリーの窓から
+2024-06-22|T|奈良井宿の軒先
+2024-05-05|G|Helios 44-2 を一年使って
+2024-03-17|T|阿蘇、草千里の風
+2024-02-04|T|長崎、坂の上の教会
+2023-12-10|G|ストラップ遍歴
+2023-10-28|T|秋の五島列島を歩く
+2023-08-19|N|Flickr アルバムを公開しました
+2023-06-11|T|雨の京都、傘越しに
+2023-04-02|G|カメラバッグ選び`;
+const POSTS = RAW.split("\n").map((l, i) => {
+  const [d, tag, title] = l.split("|"), [y, m, dd] = d.split("-");
+  return { i, tag, title, year: y, date: `${y}.${m}.${dd}`, img: IMS[(i * 5) % IMS.length] };
+});
+const ARS = ["4/5", "3/2", "1/1", "3/4", "4/3", "2/3"];
+const THEMES = {
+  light: { bg: "#e1dfda", ink: "#1c1b19", sub: "#5f5b55", rule: "rgba(28,27,25,0.14)", line: "rgba(28,27,25,0.35)", shadow: "rgba(40,35,30,0.45)" },
+  dark: { bg: "#161513", ink: "#e4e1db", sub: "#948f86", rule: "rgba(228,225,219,0.14)", line: "rgba(228,225,219,0.35)", shadow: "rgba(0,0,0,0.7)" }
+};
+function applyTheme(t) { const r = document.documentElement, v = THEMES[t]; Object.keys(v).forEach(k => r.style.setProperty("--" + k, v[k])); r.style.colorScheme = t; }
+const pad2 = n => String(n).padStart(2, "0");
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+// depth-plane stride: coprime with N so neighbours in the grid land on distant planes
+function stepFor(N) { if (N < 3) return 1; let s = Math.max(2, Math.round(N * 0.38)); while (gcd(s, N) !== 1) s++; return s; }
+const distAt = t => { const m = 0.8 * Math.pow(15, t); return m < 10 ? m.toFixed(1) + " m" : Math.round(m) + " m"; };
+const MAXB = 4;
+const blurAt = (dz, N) => dz <= 0.001 ? 0 : MAXB * (0.2 * Math.min(1, dz) + 0.8 * Math.max(0, dz - 1) / Math.max(1, N - 2));
+
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    let theme = "light", mode = "on";
+    try { theme = localStorage.getItem("theme") === "dark" ? "dark" : "light"; mode = localStorage.getItem("journal-dof") === "off" ? "off" : "on"; } catch (e) {}
+    applyTheme(theme);
+    this.state = { theme, mode, f: "all", hh: null, hm: null, ay: null, tg: {}, bm: { x: 0.5, y: 0.5 }, nc: 4 };
+  }
+  componentDidMount() {
+    this.ro = new ResizeObserver(([e]) => { const w = e.contentRect.width, nc = w >= 1000 ? 4 : w >= 680 ? 3 : 2; if (nc !== this.state.nc) this.setState({ nc }); });
+    if (this.field) this.ro.observe(this.field);
+  }
+  componentWillUnmount() { if (this.ro) this.ro.disconnect(); }
+  aim(key, z) { this.setState(s => ({ tg: { ...s.tg, [key]: z } })); }
+  toggleTheme = () => { const t = this.state.theme === "dark" ? "light" : "dark"; applyTheme(t); try { localStorage.setItem("theme", t); } catch (e) {} this.setState({ theme: t }); };
+  setMode = m => { try { localStorage.setItem("journal-dof", m); } catch (e) {} this.setState({ mode: m }); };
+  card(p, extra) { return { title: p.title, date: p.date, tag: TAGS[p.tag], thumb: p.img.t, full: p.img.f, href: "#", ...extra }; }
+  renderVals() {
+    const s = this.state, PX = (this.props.parallax ?? true) ? 1 : 0, dof = s.mode !== "off";
+    const hf = s.hh != null ? s.hh : 0, hm = s.hm || { x: 0.5, y: 0.5 };
+    const hero = (p, idx) => {
+      const kk = (3 - idx) * 6 * PX, dz = Math.abs(idx - hf);
+      return this.card(p, { flt: `blur(${dof ? (dz * MAXB * 0.53).toFixed(1) : 0}px)`, op: dof && idx !== hf ? 0.75 : 1,
+        tr: `translate(${(-(hm.x * 2 - 1) * kk).toFixed(1)}px, ${(-(hm.y * 2 - 1) * kk * 0.6).toFixed(1)}px)`,
+        enter: () => this.setState({ hh: idx }) });
+    };
+    const main = hero(POSTS[0], 0), side = [hero(POSTS[1], 1), hero(POSTS[2], 2)];
+    const base = POSTS.slice(3), list = base.filter(p => s.f === "all" || p.tag === s.f);
+    const yrs = [];
+    list.forEach(p => { let g = yrs[yrs.length - 1]; if (!g || g.year !== p.year) { g = { year: p.year, items: [] }; yrs.push(g); } g.items.push(p); });
+    const mx = s.bm.x * 2 - 1, my = s.bm.y * 2 - 1;
+    let readout = dof ? "focus —" : "depth of field off";
+    const groups = yrs.map(g => {
+      const N = g.items.length, act = s.ay === g.year, st = stepFor(N), den = Math.max(1, N - 1), zf = s.tg[g.year] ?? 0;
+      if (act && dof) readout = `${g.year} · focus ${distAt(zf / den)} · plane ${pad2(zf + 1)} / ${pad2(N)}`;
+      const cols = Array.from({ length: s.nc }, () => ({ h: 0, items: [] }));
+      g.items.forEach((p, j) => {
+        const z = (j * st) % N, ar = ARS[(p.i * 7) % ARS.length], [aw, ah] = ar.split("/").map(Number);
+        const ci = cols.reduce((a, c, i) => c.h < cols[a].h ? i : a, 0);
+        const o = this.card(p, { ar, flt: "blur(0px)", op: 1, tr: "none",
+          enter: () => { this.setState({ ay: g.year }); this.aim(g.year, z); } });
+        if (act) {
+          const dz = Math.abs(z - zf), t = z / den, k = (6 + 14 * (1 - t)) * PX;
+          o.flt = `blur(${(dof ? blurAt(dz, N) : 0).toFixed(2)}px)`;
+          o.op = dof ? (1 - 0.3 * Math.min(1, dz / den)).toFixed(2) : 1;
+          o.tr = `translate(${(-mx * k).toFixed(1)}px, ${(-my * k * 0.5).toFixed(1)}px) scale(${(1 - 0.06 * t * PX).toFixed(3)})`;
+        }
+        cols[ci].items.push(o); cols[ci].h += ah / aw + 0.3;
+      });
+      return { year: g.year, n: `${pad2(N)} entries`, cols,
+        col: s.ay && !act ? "var(--sub,#5f5b55)" : "var(--ink,#1c1b19)",
+        enter: () => { if (this.state.ay !== g.year) this.setState({ ay: g.year }); },
+        move: e => { const r = e.currentTarget.getBoundingClientRect(); this.setState({ bm: { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height } }); },
+        leave: () => this.setState({ ay: null, bm: { x: 0.5, y: 0.5 } }) };
+    });
+    const tabs = ["all", "T", "G", "N"].map(k => {
+      const on = s.f === k, n = k === "all" ? base.length : base.filter(p => p.tag === k).length;
+      return { label: k === "all" ? "All" : TAGS[k], n: pad2(n), col: on ? "var(--ink,#1c1b19)" : "var(--sub,#5f5b55)", bd: on ? "var(--ink,#1c1b19)" : "transparent", go: () => this.setState({ f: k, ay: null }) };
+    });
+    const opt = (label, m) => ({ label, go: () => this.setMode(m), bg: s.mode === m ? "var(--ink,#1c1b19)" : "transparent", col: s.mode === m ? "var(--bg,#e1dfda)" : "var(--ink,#1c1b19)" });
+    return {
+      toggleTheme: this.toggleTheme, themeLabel: s.theme === "dark" ? "Dark" : "Light", dotBg: s.theme === "dark" ? "currentColor" : "transparent",
+      main, side,
+      heroMove: PX ? e => { const r = e.currentTarget.getBoundingClientRect(); this.setState({ hm: { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height } }); } : undefined,
+      heroLeave: () => this.setState({ hh: null, hm: null }),
+      readout, tabs, groups,
+      dofOpts: [opt("Off", "off"), opt("On", "on")],
+      fieldRef: el => { this.field = el; }
+    };
+  }
+}
+</script>
+</body>
+</html>
