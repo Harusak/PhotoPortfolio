@@ -9,6 +9,7 @@ _site/
 
 *.md
 !docs/**/*.md
+!_posts/*.md
 
 # Superpowers brainstorm sessions
 .superpowers/
