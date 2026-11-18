@@ -52,6 +52,12 @@
     return Math.round(clamp((scrollTop - a) / Math.max(1, z - a), 0, 1) * 100);
   }
 
+  // 進み具合（0〜100）から scrollTop に戻す（longProgress の逆。計測し直したあとに読んでいた位置を保つ）
+  function progressTop(p, top, h, H, edge) {
+    const a = top - edge, z = top + h - H + edge + 16;
+    return a + p / 100 * (z - a);
+  }
+
   // スクラバー上のポインタ位置 → 写真 index
   const scrubIndex = (x, left, width, n) => clamp(Math.floor((x - left) / Math.max(1, width) * n), 0, n - 1);
 
@@ -62,7 +68,7 @@
   // ステージに出す写真：スクラバーで見ている写真 → 移動中の行き先 → アクティブなシーンの写真
   const shownPhoto = (peek, target, actPhoto) => (peek != null ? peek : target != null ? target : actPhoto);
 
-  const api = { splitScenes, scenePhotos, edgeOf, isLongScene, activeScene, snapTop, longProgress, scrubIndex, sceneDepth, stageDepth, shownPhoto };
+  const api = { splitScenes, scenePhotos, edgeOf, isLongScene, activeScene, snapTop, longProgress, progressTop, scrubIndex, sceneDepth, stageDepth, shownPhoto };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else window.PostScenes = api;
 })();

@@ -170,6 +170,9 @@
 
   // スペーサー・edge・長いシーンを計算し直し、今のシーンを戻す
   function measure() {
+    // 長いシーンを読んでいる途中なら、その進み具合を覚えておく
+    const cur = scenes[act];
+    const keep = H && long.has(act) ? S.longProgress(scenesEl.scrollTop, cur.offsetTop, cur.offsetHeight, H, edge) : null;
     H = scenesEl.clientHeight;
     if (!H) return;
     spacers.forEach(el => { el.style.height = Math.round(H / 2) + 'px'; });
@@ -190,7 +193,11 @@
         delete sec.dataset.long;
       }
     });
-    goScene(act, false, false);
+    if (keep != null && long.has(act)) {
+      scenesEl.scrollTo({ top: S.progressTop(keep, cur.offsetTop, cur.offsetHeight, H, edge), behavior: 'auto' });
+    } else {
+      goScene(act, false, false);
+    }
     update();
   }
 

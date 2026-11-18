@@ -59,3 +59,10 @@ test('depth / shownPhoto', () => {
   assert.equal(S.shownPhoto(null, 2, 1), 2);
   assert.equal(S.shownPhoto(null, null, 1), 1);
 });
+
+test('progressTop：計測し直したあと、長いシーンの読んでいた位置に戻す', () => {
+  assert.equal(S.progressTop(50, 400, 900, 700, 98), 508);  // longProgress の逆
+  assert.equal(S.progressTop(0, 400, 900, 700, 98), 302);
+  assert.equal(S.progressTop(100, 400, 900, 700, 98), 714);
+  assert.equal(S.progressTop(50, 400, 1200, 800, 112), 608); // 幅が変わって高さも変わったとき：a = 288, z = 928
+});
