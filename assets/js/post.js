@@ -29,7 +29,7 @@
   const lightbox = $('lightbox'), lbFrame = $('lb-frame'), lbImg = $('lb-img');
   const lbGlare = $('lb-glare'), lbTitle = $('lb-title'), lbFlickr = $('lb-flickr');
   const MAX_ROTATION = 15;
-  let popped = null;
+  let popped = null, returnFocus = null;
 
   function setTilt(nx, ny) {
     lbFrame.style.transform = mqMobile.matches
@@ -38,8 +38,10 @@
     lbGlare.style.background = `radial-gradient(circle at ${((nx + 1) / 2 * 100).toFixed(1)}% ${((ny + 1) / 2 * 100).toFixed(1)}%, rgba(255,255,255,.25) 0%, rgba(255,255,255,.15) 20%, transparent 50%)`;
   }
 
-  function openPop(p) {
+  // from = 閉じたあとにフォーカスを戻す要素
+  function openPop(p, from) {
     popped = p;
+    returnFocus = from || null;
     lbImg.src = p.full;
     lbImg.alt = p.caption;
     lbTitle.textContent = p.caption;
@@ -48,6 +50,7 @@
     setTilt(0, 0);
     lightbox.hidden = false;
     html.classList.add('lb-open');
+    $('lb-close').focus({ preventScroll: true }); // 表示中はキー操作で文章欄を動かさない
   }
 
   function closePop() {
@@ -55,9 +58,12 @@
     popped = null;
     lightbox.hidden = true;
     html.classList.remove('lb-open');
+    if (returnFocus) returnFocus.focus({ preventScroll: true });
   }
 
-  lightbox.addEventListener('click', closePop);
+  // 背景（全面の透明ボタン）／× ／Esc で閉じる
+  $('lb-backdrop').addEventListener('click', closePop);
+  $('lb-close').addEventListener('click', closePop);
   lbFlickr.addEventListener('click', e => e.stopPropagation());
   lightbox.addEventListener('mousemove', e => {
     if (mqMobile.matches) return;
@@ -242,7 +248,8 @@
     img.alt = p.caption;
     img.decoding = 'async';
     btn.appendChild(img);
-    btn.addEventListener('click', () => openPop(p));
+    // キーボードで開いたら写真に、クリックで開いたら文章欄にフォーカスを戻す（↓ キーで続きを読める）
+    btn.addEventListener('click', e => openPop(p, e.detail === 0 ? btn : scenesEl));
     stage.appendChild(btn);
     return btn;
   });
