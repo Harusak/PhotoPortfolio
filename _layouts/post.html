@@ -200,7 +200,7 @@
       color: var(--sub);
     }
 
-    .post-title {
+    .post-head .post-title {
       margin: 0;
       font-family: var(--mincho);
       font-weight: 500;
@@ -209,7 +209,7 @@
       text-wrap: pretty;
     }
 
-    .post-lead {
+    .post-head .post-lead {
       margin: 0;
       font-family: var(--mincho);
       font-size: 18px;
@@ -257,7 +257,7 @@
       text-wrap: pretty;
     }
 
-    .post-body h1,
+    .post-body h1:not(.post-title),
     .post-body h2 {
       margin: 2em 0 .9em;
       font-weight: 500;
@@ -281,6 +281,12 @@
       text-decoration: underline;
       text-decoration-color: var(--line);
       text-underline-offset: .25em;
+    }
+
+    /* シーン送りでは記事頭・末尾も .post-body に入るので、本文用の下線を外す */
+    .post-body .post-head a,
+    .post-body .post-foot a {
+      text-decoration: none;
     }
 
     .post-body ul,
@@ -359,6 +365,259 @@
     .scroll-cue,
     .stage-nav {
       display: none;
+    }
+
+    /* ---------- シーン送り（JS が html.has-scenes を付ける）：ビューポート固定、文章欄だけスクロール ---------- */
+    html.has-scenes,
+    html.has-scenes body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html.has-scenes .post {
+      max-width: 1600px;
+      height: 100dvh;
+      min-height: 560px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 56px;
+      overflow: hidden;
+    }
+
+    html.has-scenes .post-text-col {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding-bottom: 24px;
+    }
+
+    html.has-scenes .post-header {
+      flex: none;
+    }
+
+    html.has-scenes .head-nav {
+      display: none;
+    }
+
+    html.has-scenes .scenes-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    html.has-scenes .scenes {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -webkit-mask-image: linear-gradient(transparent 0%, #000 13%, #000 87%, transparent 100%);
+      mask-image: linear-gradient(transparent 0%, #000 13%, #000 87%, transparent 100%);
+      outline: none;
+    }
+
+    html.has-scenes .scenes::-webkit-scrollbar {
+      display: none;
+    }
+
+    html.has-scenes .post-body {
+      padding: 0;
+    }
+
+    /* シーン：中央でピント、前後はボケて上下に覗く。間隔は段落の下マージンだけ */
+    .scene {
+      padding: 0;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+      transition: filter .6s ease, opacity .6s ease;
+    }
+
+    .scene[data-long] {
+      scroll-snap-align: start;
+      scroll-margin: var(--edge) 0;
+    }
+
+    /* 長いシーンの末尾で必ずいったん止まる */
+    .scene-end-mark {
+      height: 1px;
+      margin-top: -1px;
+      scroll-snap-align: end;
+      scroll-snap-stop: always;
+      scroll-margin-bottom: calc(var(--edge) + 16px);
+    }
+
+    .scene[data-d="1"] {
+      filter: blur(3px);
+      opacity: .4;
+    }
+
+    .scene[data-d="2"] {
+      filter: blur(6px);
+      opacity: .18;
+    }
+
+    .scene[data-d="3"] {
+      filter: blur(6px);
+      opacity: 0;
+    }
+
+    html[data-dof="off"] .scene {
+      filter: none;
+    }
+
+    html.has-scenes .post-body h1:not(.post-title),
+    html.has-scenes .post-body h2 {
+      margin: 0 0 .9em;
+    }
+
+    html.has-scenes .post-head {
+      max-width: none;
+      padding: 0;
+      margin-bottom: 36px;
+    }
+
+    html.has-scenes .post-foot {
+      max-width: none;
+      margin: 0;
+      padding: 28px 0 0;
+    }
+
+    .post-head,
+    .post-foot,
+    .scene-no {
+      font-family: var(--mono);
+    }
+
+    /* 写真番号ラベル（表紙が 01） */
+    .scene-no {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.2em;
+      font-size: 10px;
+      line-height: 1.4;
+      letter-spacing: .14em;
+      color: var(--sub);
+    }
+
+    .scene-no::before {
+      content: '';
+      width: 28px;
+      height: 1px;
+      background: var(--line);
+    }
+
+    /* 長いシーンの進み具合 */
+    html.has-scenes .scene-progress {
+      display: block;
+      position: absolute;
+      left: -24px;
+      top: 14%;
+      bottom: 14%;
+      width: 1px;
+      background: var(--rule);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .4s ease;
+    }
+
+    .scene-progress.is-on {
+      opacity: 1;
+    }
+
+    .scene-progress-fill {
+      width: 1px;
+      height: 0;
+      background: var(--ink);
+      transition: height .12s linear;
+    }
+
+    .scene-progress-end {
+      position: absolute;
+      left: -3px;
+      bottom: -9px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      border: 1px solid var(--ink);
+      background: var(--bg);
+      transition: background .3s;
+    }
+
+    .scene-progress.is-end .scene-progress-end {
+      background: var(--ink);
+    }
+
+    /* スクロール案内（山形の矢印） */
+    html.has-scenes .scroll-cue {
+      display: flex;
+      justify-content: center;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 14px;
+      z-index: 2;
+      color: var(--sub);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .5s ease, transform .6s var(--ease-move);
+    }
+
+    .scroll-cue.is-on {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .scroll-cue svg {
+      animation: bob 1.6s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(3px); }
+    }
+
+    /* 右カラム：nav ＋ステージ */
+    html.has-scenes .stage-col {
+      height: 100%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding-bottom: 32px;
+    }
+
+    html.has-scenes .stage-nav {
+      display: flex;
+      justify-content: flex-end;
+      flex: none;
+      height: 80px;
+    }
+
+    html.has-scenes .stage {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .stage-bar {
+      flex: none;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stage-cap {
+      font-family: var(--mincho);
+      font-size: 14px;
+      color: var(--sub);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* ---------- ポップアップ（ギャラリーと同じホログラム） ---------- */
@@ -523,12 +782,12 @@
         font-size: 10px;
       }
 
-      .post-title {
+      .post-head .post-title {
         font-size: 28px;
         line-height: 1.35;
       }
 
-      .post-lead {
+      .post-head .post-lead {
         font-size: 15px;
       }
 
@@ -545,7 +804,7 @@
         padding: 28px 20px 0;
       }
 
-      .post-body h1,
+      .post-body h1:not(.post-title),
       .post-body h2 {
         font-size: 20px;
       }
@@ -560,6 +819,80 @@
 
       .post-foot .meta {
         letter-spacing: .12em;
+      }
+
+      /* シーン送り：ヘッダー → 写真欄 → 文章欄 */
+      html.has-scenes .post {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      html.has-scenes .post-text-col {
+        display: contents;
+      }
+
+      html.has-scenes .post-header {
+        order: 0;
+      }
+
+      html.has-scenes .head-nav {
+        display: flex;
+      }
+
+      html.has-scenes .stage-col {
+        order: 1;
+        flex: none;
+        height: clamp(260px, 41vh, 380px);
+        padding: 0 20px 4px;
+        gap: 10px;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      html.has-scenes .stage-nav {
+        display: none;
+      }
+
+      html.has-scenes .stage-bar {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .stage-cap {
+        font-size: 12px;
+      }
+
+      html.has-scenes .scenes-wrap {
+        order: 2;
+      }
+
+      html.has-scenes .scenes {
+        padding: 0 20px;
+        -webkit-mask-image: linear-gradient(transparent 0%, #000 11%, #000 89%, transparent 100%);
+        mask-image: linear-gradient(transparent 0%, #000 11%, #000 89%, transparent 100%);
+      }
+
+      html.has-scenes .post-head {
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+
+      html.has-scenes .post-foot {
+        padding: 28px 0 0;
+      }
+
+      .scene-no::before {
+        width: 20px;
+      }
+
+      html.has-scenes .scene-progress {
+        left: 8px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-cue svg {
+        animation: none;
       }
     }
   </style>
