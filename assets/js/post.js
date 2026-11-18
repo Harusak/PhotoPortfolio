@@ -19,10 +19,12 @@
     themeLabels.forEach(el => { el.textContent = t === 'dark' ? 'Dark' : 'Light'; });
   }
   applyTheme(html.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
-  document.querySelectorAll('.theme-toggle').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.theme-toggle').forEach(btn => btn.addEventListener('click', e => {
     const t = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     applyTheme(t);
-    try { localStorage.setItem('theme', t); } catch (e) {}
+    try { localStorage.setItem('theme', t); } catch (err) {}
+    // シーン送り中にポインタで押したら文章欄にフォーカスを戻す（↓ キーで続きを読める）
+    if (e.detail > 0 && html.classList.contains('has-scenes')) $('scenes').focus({ preventScroll: true });
   }));
 
   // ---------- ホログラムポップアップ ----------
@@ -332,6 +334,7 @@
     drag = false;
     suppress = Date.now() + 400;
     jumpPhoto(idxAt(e));
+    scenesEl.focus({ preventScroll: true }); // ボタンにフォーカスを残さず、続けて ↓ キーで読めるように
   });
   scrubber.addEventListener('pointercancel', () => { drag = false; peek = null; renderStage(); });
   scrubber.addEventListener('pointerleave', e => {
