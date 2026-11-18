@@ -620,6 +620,115 @@
       text-overflow: ellipsis;
     }
 
+    /* 写真の重なり（d = 写真 index − 表示中の index。-1 は通過済、2 は 2 枚以上先） */
+    .stage-photo {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      background: none;
+      border: 0;
+      cursor: zoom-in;
+      opacity: 0;
+      pointer-events: none;
+      transition: filter .9s ease, opacity .9s ease, transform .9s var(--ease-move);
+    }
+
+    .stage.is-peeking .stage-photo {
+      transition-duration: .3s;
+    }
+
+    .stage-photo img {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      box-shadow: 0 40px 80px -30px var(--shadow);
+    }
+
+    .stage-photo[data-d="0"] {
+      transform: none;
+      filter: blur(0);
+      opacity: 1;
+      z-index: 5;
+      pointer-events: auto;
+    }
+
+    .stage-photo[data-d="1"] {
+      transform: translate(5%, -4%) scale(.9);
+      filter: blur(7px);
+      opacity: .3;
+      z-index: 4;
+    }
+
+    .stage-photo[data-d="2"] {
+      transform: translate(8%, -6%) scale(.84);
+      filter: blur(10px);
+      z-index: 3;
+    }
+
+    .stage-photo[data-d="-1"] {
+      transform: translate(-3%, 4%) scale(1.05);
+      filter: blur(10px);
+      z-index: 6;
+    }
+
+    /* Depth of field Off：ボケだけ消す（opacity・transform は同じ） */
+    html[data-dof="off"] .stage-photo {
+      filter: none;
+    }
+
+    /* スクラバー（写真の下の線）：ホバー／なぞると写真だけ先に見られる */
+    .scrubber {
+      display: flex;
+      align-items: stretch;
+      height: 44px;
+      margin: -14px 0;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: pointer;
+    }
+
+    .scrub {
+      display: flex;
+      align-items: center;
+      width: 28px;
+      padding: 0 4px;
+      background: none;
+      border: 0;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    /* ホバーで薄くしない（ホバーできるのは現在の写真だけ） */
+    .stage-photo:hover,
+    .scrub:hover {
+      opacity: 1;
+    }
+
+    .scrub span {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: var(--ink);
+      opacity: .22;
+      transition: opacity .25s, height .2s;
+    }
+
+    .scrub[data-state="act"] span {
+      opacity: .55;
+    }
+
+    .scrub[data-state="shown"] span {
+      opacity: 1;
+    }
+
+    .scrub.is-peek span {
+      height: 3px;
+    }
+
     /* ---------- ポップアップ（ギャラリーと同じホログラム） ---------- */
     .lightbox {
       position: fixed;
@@ -855,11 +964,33 @@
 
       html.has-scenes .stage-bar {
         grid-template-columns: auto minmax(0, 1fr);
-        gap: 12px;
+        gap: 10px 12px;
+      }
+
+      .stage-bar .meta {
+        letter-spacing: .12em;
       }
 
       .stage-cap {
         font-size: 12px;
+      }
+
+      .stage-photo img {
+        box-shadow: 0 24px 48px -24px var(--shadow);
+      }
+
+      /* スクラバーは横幅いっぱい */
+      .scrubber {
+        grid-column: 1 / -1;
+        height: 40px;
+        margin: -4px -3px 0;
+      }
+
+      .scrub {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+        padding: 0 3px;
       }
 
       html.has-scenes .scenes-wrap {
@@ -893,6 +1024,10 @@
     @media (prefers-reduced-motion: reduce) {
       .scroll-cue svg {
         animation: none;
+      }
+
+      .stage-photo {
+        transform: none !important;
       }
     }
   </style>

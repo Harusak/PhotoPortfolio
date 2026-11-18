@@ -228,6 +228,108 @@
   scenesEl.addEventListener('scroll', schedule(update), { passive: true });
   window.addEventListener('resize', schedule(measure));
 
+  // ---------- ステージ（写真のピント送り） ----------
+  const stageNo = $('stage-no'), stageCap = $('stage-cap'), scrubber = $('scrubber');
+  const srcOf = p => (mqMobile.matches ? p.thumb : p.full);
+  let peek = null, target = null, targetTimer = 0, suppress = 0, drag = false;
+
+  const shots = photos.map((p, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'stage-photo';
+    btn.setAttribute('aria-label', `写真を拡大：${p.caption || pad(i + 1)}`);
+    const img = document.createElement('img');
+    img.alt = p.caption;
+    img.decoding = 'async';
+    btn.appendChild(img);
+    btn.addEventListener('click', () => openPop(p));
+    stage.appendChild(btn);
+    return btn;
+  });
+
+  // スクラバー：写真ごとの線
+  const bars = photos.map((p, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'scrub';
+    btn.setAttribute('aria-label', `写真 ${pad(i + 1)}「${p.caption}」のシーンへ`);
+    btn.appendChild(document.createElement('span'));
+    btn.addEventListener('click', () => {
+      if (Date.now() < suppress) return; // ポインタで移動した直後の二重発火を無視
+      jumpPhoto(i);
+    });
+    scrubber.appendChild(btn);
+    return btn;
+  });
+
+  // 表示する写真 = スクラバーで見ている写真 → 移動中の行き先 → アクティブなシーンの写真
+  function renderStage() {
+    const ph = photoOf[act], shown = S.shownPhoto(peek, target, ph);
+    shots.forEach((btn, i) => {
+      const d = S.stageDepth(i, shown);
+      btn.dataset.d = d;
+      btn.tabIndex = d === 0 ? 0 : -1;
+      const img = btn.firstChild;
+      if (Math.abs(i - shown) <= 1 && !img.getAttribute('src')) img.src = srcOf(photos[i]); // 現在 ±1 だけ読み込む
+    });
+    bars.forEach((btn, i) => {
+      btn.dataset.state = i === shown ? 'shown' : i === ph ? 'act' : '';
+      btn.classList.toggle('is-peek', i === peek);
+    });
+    stage.classList.toggle('is-peeking', peek != null);
+    stageNo.textContent = `${pad(shown + 1)} / ${pad(photos.length)}`;
+    stageCap.textContent = photos[shown].caption;
+  }
+
+  // その写真を持つ最初のシーンへ。着くまでステージは行き先の写真に固定
+  function jumpPhoto(i) {
+    const k = photoOf.findIndex((ph, s) => ph === i && s < scenes.length - 1);
+    clearTimeout(targetTimer);
+    targetTimer = setTimeout(() => { target = null; renderStage(); }, 1800);
+    peek = null;
+    target = photoOf[act] === i ? null : i;
+    renderStage();
+    goScene(k, true, false);
+  }
+
+  onActChange.push(() => {
+    if (target != null && photoOf[act] === target) target = null;
+    renderStage();
+  });
+
+  // マウス：ホバーで写真だけ先に見る／タッチ：なぞる間だけ見て、離した位置へ移動
+  const idxAt = e => {
+    const r = scrubber.getBoundingClientRect();
+    return S.scrubIndex(e.clientX, r.left, r.width, photos.length);
+  };
+  scrubber.addEventListener('pointerdown', e => {
+    drag = true;
+    try { scrubber.setPointerCapture(e.pointerId); } catch (err) {}
+    peek = idxAt(e);
+    renderStage();
+  });
+  scrubber.addEventListener('pointermove', e => {
+    if (!drag && e.pointerType !== 'mouse') return;
+    const i = idxAt(e);
+    if (i !== peek) { peek = i; renderStage(); }
+  });
+  scrubber.addEventListener('pointerup', e => {
+    if (!drag) return;
+    drag = false;
+    suppress = Date.now() + 400;
+    jumpPhoto(idxAt(e));
+  });
+  scrubber.addEventListener('pointercancel', () => { drag = false; peek = null; renderStage(); });
+  scrubber.addEventListener('pointerleave', e => {
+    if (!drag && e.pointerType === 'mouse') { peek = null; renderStage(); }
+  });
+
+  mqMobile.addEventListener('change', () => {
+    // 読み込み済みの写真をサイズ違いに差し替える
+    shots.forEach((btn, i) => { if (btn.firstChild.getAttribute('src')) btn.firstChild.src = srcOf(photos[i]); });
+    setTilt(0, 0);
+  });
+
   stageCol.hidden = false;
   html.classList.add('has-scenes');
   render();
