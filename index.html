@@ -1020,7 +1020,7 @@
       }
     }
 
-    /* Journal：狭幅ではヒーローを縦積み */
+    /* Journal：2 列のとき（FOCUS.md「レイアウト（タッチ方式・2 列のとき）」。ヘッダーは共通のまま） */
     @media (max-width: 679px) {
       .af-label {
         bottom: calc(100% + 7px);
@@ -1030,8 +1030,10 @@
       .j-hero {
         height: auto;
         min-height: 0;
+        padding: 0 20px;
         display: flex;
         flex-direction: column;
+        gap: 22px;
       }
 
       .j-main {
@@ -1042,11 +1044,112 @@
         left: 20px;
         right: 20px;
         bottom: 20px;
+        gap: 10px;
+      }
+
+      .j-main-meta {
+        font-size: 10px;
+      }
+
+      .j-main-title {
+        font-size: 28px;
+        line-height: 1.25;
+      }
+
+      /* サイド 2 枚は横並び */
+      .j-side {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .j-side .j-hero-card {
+        gap: 8px;
       }
 
       .j-side img {
         flex: none;
-        aspect-ratio: 3 / 2;
+        aspect-ratio: 1 / 1;
+      }
+
+      .j-side-title {
+        font-size: 16px;
+        line-height: 1.4;
+      }
+
+      .j-archive {
+        padding: 48px 20px 40px;
+      }
+
+      .j-archive-head {
+        padding-bottom: 10px;
+      }
+
+      .j-archive-head h2 {
+        font-size: 40px;
+      }
+
+      /* フィルタは横スクロール（スクロールバーは出さない） */
+      .j-toolbar {
+        flex-wrap: nowrap;
+      }
+
+      .j-tabs {
+        flex-wrap: nowrap;
+        gap: 0 22px;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .j-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .j-tab,
+      .j-toolbar-label {
+        flex: none;
+      }
+
+      .j-tab {
+        min-height: 44px;
+        align-items: center;
+        white-space: nowrap;
+      }
+
+      .j-year {
+        padding-top: 32px;
+        gap: 20px;
+      }
+
+      .j-year-num {
+        font-size: 30px;
+      }
+
+      .j-cols {
+        gap: 26px 14px;
+      }
+
+      .j-cols.is-masonry {
+        gap: 14px;
+      }
+
+      .j-col {
+        gap: 26px;
+      }
+
+      .j-card {
+        gap: 8px;
+      }
+
+      .j-card-title {
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      .j-footer {
+        padding: 28px 20px 80px;
+        font-size: 10px;
       }
     }
   </style>
