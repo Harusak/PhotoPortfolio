@@ -860,6 +860,18 @@
       text-wrap: pretty;
     }
 
+    /* タッチ方式：ボケは JS が毎フレーム動かすので filter に transition を付けない。
+       ブリージングの中心をグループ座標で取るため、グループの入れ物を基準にする */
+    #j-hero,
+    .j-cols {
+      position: relative;
+    }
+
+    html[data-input="touch"] .j-hero-card,
+    html[data-input="touch"] .j-card {
+      transition: opacity .3s ease, transform .8s var(--ease-move);
+    }
+
     /* AF ブラケット（Journal のピント）。四隅だけの枠がカードの写真へ広がる */
     html[data-input="mouse"] .view-journal,
     html[data-input="mouse"] .view-journal * {
@@ -1776,12 +1788,164 @@
         };
       }
 
-      // タッチ方式（Task 4 で中身を入れる）
-      function tickTouch() {
-        return { target: null, live: 0, up: .35, from: null, label: null, dot: false, busy: false };
+      // ---------- タッチ方式：合焦ライン＋相対的な列切替 ----------
+      let jCol = 0, jSwipe = null, jSwiped = false, jPickRaf = 0;
+      const jZv = {};                                                     // グループごとの表示用ピント面（補間値）
+      const jOrigin = { x: 0, y: 0, tx: 0, ty: 0, w: 1, h: 1 };          // ブリージング・視差の中心（グループ座標）
+      const jGroups = () => (jHeroGroup ? [jHeroGroup] : []).concat(jx.groups);
+      const jZf = g => jx.tg[g.key] || 0;
+
+      // 合焦ラインに重なったカードを選ぶ（選択中の列を優先。ヒーローのメインはどの列にも属する）
+      function pickTouch() {
+        if (!jActive || jInput() !== 'touch') return;
+        const cands = jGroups().flatMap(g => g.items);
+        if (!cands.length) return;
+        const h = window.innerHeight;
+        const lineY = JF.focusLineY(window.scrollY, document.documentElement.scrollHeight, h);
+        const n = jx.nc || 2;
+        jCol = JF.clampCol(jCol, n);
+        const base = jField && jField.offsetWidth ? jField.getBoundingClientRect() : { left: 0, width: window.innerWidth };
+        const colX = JF.columnCenter(jCol, n, base.left, base.width);
+        const rects = cands.map(c => {
+          const r = c.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, anyColumn: c === jHeroCards[0] };
+        });
+        const i = JF.pickFocus(rects, lineY, colX, cands.indexOf(jFocus.card));
+        if (i >= 0) setTouchFocus(cands[i]);
       }
-      function jOnLayout() {}
-      function jOnInput() {}
+      function schedulePick() {
+        if (!jPickRaf) jPickRaf = requestAnimationFrame(() => { jPickRaf = 0; pickTouch(); });
+      }
+
+      function setTouchFocus(card) {
+        const g = card._jg;
+        if (card === jFocus.card && g === jFocus.group) return;
+        const prev = jFocus.group;
+        jFocus.card = card;
+        jFocus.group = g;
+        jx.tg[g.key] = card._jz;
+        jx.ay = g.key === 'hero' ? null : g.year;
+        // 中心はグループ内の（変形前の）座標。グループが替わったら即座に、同じグループ内ならばねで寄せる
+        jOrigin.tx = card.offsetLeft + card.offsetWidth / 2;
+        jOrigin.ty = card.offsetTop + card.offsetHeight / 2;
+        jOrigin.w = g.cont.offsetWidth || 1;
+        jOrigin.h = g.cont.offsetHeight || 1;
+        if (g !== prev || reduceMotion.matches) { jOrigin.x = jOrigin.tx; jOrigin.y = jOrigin.ty; }
+        renderArchive(); // ステータス表示と年見出しの色
+        touchNote();
+      }
+
+      function tickTouch(now) {
+        const reduce = reduceMotion.matches, px = reduce ? 0 : 1, ag = jFocus.group;
+        let busy = false;
+        const ox = jOrigin.x, oy = jOrigin.y;
+        jOrigin.x = reduce ? jOrigin.tx : JF.approach(jOrigin.x, jOrigin.tx, .2, .5);
+        jOrigin.y = reduce ? jOrigin.ty : JF.approach(jOrigin.y, jOrigin.ty, .2, .5);
+        if (jOrigin.x !== jOrigin.tx || jOrigin.y !== jOrigin.ty || ox !== jOrigin.x || oy !== jOrigin.y) busy = true;
+        const { mx, my } = JF.originToMouse(jOrigin.x, jOrigin.y, jOrigin.w, jOrigin.h);
+        jGroups().forEach(g => {
+          const zf = jZf(g), N = g.key === 'hero' ? 3 : g.N, den = jDen(g), act = g === ag;
+          const zv = jZv[g.key] = reduce ? zf : JF.approach(jZv[g.key] != null ? jZv[g.key] : zf, zf, .2, .01);
+          if (zv !== zf) busy = true;
+          g.items.forEach(c => {
+            let f = 'blur(1.8px)', o = .78, tr = 'none';
+            if (act) {
+              const dz = Math.abs(c._jz - zv);
+              if (g.key === 'hero') {
+                const sh = JF.heroShift(c._jz, mx, my, px);
+                f = `blur(${JF.heroBlur(dz).toFixed(2)}px)`;
+                o = JF.heroOpacity(dz, 'touch');
+                tr = `translate(${sh.x.toFixed(1)}px, ${sh.y.toFixed(1)}px)`;
+              } else {
+                const sh = JF.archiveShift(c._jz / den, mx, my, px);
+                f = `blur(${JF.blurAt(dz, N).toFixed(2)}px)`;
+                o = JF.archiveOpacity(dz, den);
+                tr = `translate(${sh.x.toFixed(1)}px, ${sh.y.toFixed(1)}px) scale(${sh.s.toFixed(3)})`;
+              }
+            }
+            if (c._jf !== f) c.style.filter = c._jf = f;
+            if (c._jo !== o) c.style.opacity = c._jo = o;
+            if (c._jt !== tr) c.style.transform = c._jt = tr;
+          });
+          // ブリージング：ピントの合ったカードを中心に、手前の面ほどわずかに拡大
+          const cs = g.cont.style;
+          if (act && px) {
+            cs.transform = `scale(${JF.breathScale(zv, den).toFixed(4)})`;
+            cs.transformOrigin = `${jOrigin.x.toFixed(1)}px ${jOrigin.y.toFixed(1)}px`;
+          } else if (cs.transform) cs.transform = '';
+        });
+        const card = jFocus.card, img = card && (card.querySelector('img') || card);
+        // 指を離して 600ms 以上経ったら、出現位置は指先ではなくカードの中心
+        const from = jBr.from && (jBr.holding || now - jBr.fromT < 600) ? jBr.from : null;
+        return {
+          target: img ? JF.inflate(img.getBoundingClientRect(), jBr.holding ? 6 : 10) : null,
+          live: JF.bracketLive(now, jBr.last, jBr.holding),
+          up: .35,
+          from,
+          label: card ? JF.distAt((jZv[card._jg.key] || 0) / jDen(card._jg)) : null,
+          lock: true,
+          dot: false,
+          busy
+        };
+      }
+
+      // 入力方式の切替・Journal の表示・キーボード（card）のとき
+      function jOnInput(card) {
+        if (jInput() === 'touch') {
+          if (card) setTouchFocus(card);
+          else pickTouch();
+          jGroups().forEach(g => { g.items.forEach(c => { c._jf = c._jo = c._jt = null; }); });
+        } else {
+          jGroups().forEach(g => { if (g.cont) g.cont.style.transform = ''; });
+        }
+      }
+      // 石垣の組み直し（フィルタ・列数）の後：消えたカードの代わりを選び直す
+      function jOnLayout() {
+        if (jInput() === 'touch') pickTouch();
+        kick();
+      }
+
+      if (jHero || jField) {
+        viewJournal.addEventListener('touchstart', e => {
+          const t = e.touches[0];
+          if (!t || e.touches.length > 1) return;
+          jSwipe = { x0: t.clientX, c0: jCol, shift: 0 };
+          jSwiped = false;
+          jBr.holding = true;
+          jBr.from = { x: t.clientX, y: t.clientY };
+          jBr.fromT = jNow();
+          touchNote();
+        }, { passive: true });
+        const swipeTo = x => {
+          const r = JF.swipeStep(jSwipe, x, 12, jx.nc || 2);
+          jSwipe = { x0: r.x0, c0: r.c0, shift: r.shift };
+          jBr.lean = reduceMotion.matches ? 0 : r.lean; // しきい値までは枠が指に引かれて傾く
+          if (r.col !== jCol) { jCol = r.col; jSwiped = true; pickTouch(); }
+        };
+        viewJournal.addEventListener('touchmove', e => {
+          const t = e.touches[0];
+          if (!jSwipe || !t) return;
+          swipeTo(t.clientX);
+          touchNote();
+        }, { passive: true });
+        const touchEnd = e => {
+          if (e.touches.length) return;
+          // Chrome はタップ判定の遊び（約 15px）の内側では touchmove を送らないので、離した位置でも判定する
+          const t = e.changedTouches && e.changedTouches[0];
+          if (jSwipe && t && e.type === 'touchend') swipeTo(t.clientX);
+          jBr.holding = false;
+          jBr.lean = 0;
+          jSwipe = null;
+          touchNote();
+        };
+        viewJournal.addEventListener('touchend', touchEnd, { passive: true });
+        viewJournal.addEventListener('touchcancel', touchEnd, { passive: true });
+        // 列を切り替えた指の操作ではリンクを開かない（動かさないタップはそのまま）
+        viewJournal.addEventListener('click', e => {
+          if (jSwiped) { e.preventDefault(); e.stopPropagation(); }
+          jSwiped = false;
+        }, true);
+      }
 
       // ---------- AF ブラケットの描画と rAF ループ ----------
       function drawBracket(t, now) {
@@ -1895,7 +2059,8 @@
       }, { passive: true });
       window.addEventListener('scroll', () => {
         if (!jActive) return;
-        if (jInput() === 'mouse' && jPtr.in && !jBr.kbd) { jPtr.dirty = true; touchNote(); }
+        if (jInput() === 'mouse') { if (jPtr.in && !jBr.kbd) { jPtr.dirty = true; touchNote(); } }
+        else { schedulePick(); touchNote(); }
       }, { passive: true });
 
       // キーボード：:focus-visible のカードにブラケットを付け、そこにピントを合わせる
