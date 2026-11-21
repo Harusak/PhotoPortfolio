@@ -860,6 +860,93 @@
       text-wrap: pretty;
     }
 
+    /* AF ブラケット（Journal のピント）。四隅だけの枠がカードの写真へ広がる */
+    html[data-input="mouse"] .view-journal,
+    html[data-input="mouse"] .view-journal * {
+      cursor: none;
+    }
+
+    .af,
+    .af-pt {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 120;
+      pointer-events: none;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+
+    .af {
+      width: 22px;
+      height: 22px;
+      color: var(--ink);
+    }
+
+    .af-c {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border: 0 solid currentColor;
+    }
+
+    .af-c.tl { left: 0; top: 0; border-left-width: 1.5px; border-top-width: 1.5px; }
+    .af-c.tr { right: 0; top: 0; border-right-width: 1.5px; border-top-width: 1.5px; }
+    .af-c.bl { left: 0; bottom: 0; border-left-width: 1.5px; border-bottom-width: 1.5px; }
+    .af-c.br { right: 0; bottom: 0; border-right-width: 1.5px; border-bottom-width: 1.5px; }
+
+    .af-label {
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 8px);
+      display: flex;
+      gap: 14px;
+      align-items: baseline;
+      white-space: nowrap;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      opacity: 0;
+    }
+
+    html[data-input="mouse"] .af-label {
+      transition: opacity .25s;
+    }
+
+    .af-af {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .af-af::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .af-pt {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--ink);
+    }
+
+    /* ブラケットが付いている間はフォーカスリングの代わりにする */
+    .view-journal [data-card].af-on:focus-visible {
+      outline: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .af,
+      .af-pt {
+        transition: opacity .2s;
+      }
+    }
+
     .j-empty {
       padding-top: 40px;
       font-size: 11px;
@@ -923,6 +1010,11 @@
 
     /* Journal：狭幅ではヒーローを縦積み */
     @media (max-width: 679px) {
+      .af-label {
+        bottom: calc(100% + 7px);
+        gap: 12px;
+      }
+
       .j-hero {
         height: auto;
         min-height: 0;
@@ -1098,6 +1190,13 @@
       <span>© Hal Sakaguchi</span><span>Journal</span>
     </footer>
   </main>
+
+  <!-- AF ブラケット（Journal のピント操作。マウス／タッチ／キーボード共通） -->
+  <div class="af" id="af" aria-hidden="true">
+    <span class="af-c tl"></span><span class="af-c tr"></span><span class="af-c bl"></span><span class="af-c br"></span>
+    <span class="af-label" id="af-label"><span class="af-af">AF</span><span id="af-dist"></span></span>
+  </div>
+  <span class="af-pt" id="af-pt" aria-hidden="true"></span>
 
   <!-- About -->
   <main class="view-pages" id="view-pages" hidden>
@@ -1491,6 +1590,8 @@
       lightbox.addEventListener('touchend', () => setTilt(0, 0));
 
       // ---------- Journal「被写界深度」 ----------
+      // ピントの式は assets/js/journal-focus.js（JF）。どのカードにピントを合わせるかは入力で切り替える：
+      // マウス＝ポインタの下（AF ブラケットのカーソル）、タッチ＝合焦ライン＋相対的な列切替
       const JF = window.JournalFocus;
       const viewJournal = $('view-journal');
       const jHero = $('j-hero'), jField = $('j-field'), jReadout = $('j-readout');
@@ -1498,10 +1599,10 @@
       const jCards = jField ? [...jField.querySelectorAll('.j-card')] : [];
       const jTabs = [...document.querySelectorAll('.j-tab')];
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-      const isMouse = e => e.pointerType === 'mouse';
-      const rel = (e, el) => {
+      const afEl = $('af'), afLabel = $('af-label'), afDist = $('af-dist'), afPt = $('af-pt');
+      const rel = (x, y, el) => {
         const r = el.getBoundingClientRect();
-        return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height };
+        return { x: (x - r.left) / r.width, y: (y - r.top) / r.height };
       };
 
       const jx = {
@@ -1510,6 +1611,20 @@
         ay: null, tg: {}, bm: { x: .5, y: .5 }, // Archive：アクティブ年・年ごとのピント面・年内マウス位置
         nc: 0, groups: []
       };
+      // ヒーローも年グループと同じ形のグループとして扱う（z = idx）
+      const jHeroGroup = jHero ? { key: 'hero', el: jHero, cont: jHero, items: jHeroCards, N: 3 } : null;
+      jHeroCards.forEach((c, idx) => { c._jg = jHeroGroup; c._jz = idx; });
+      const jFocus = { card: null, group: null };   // focusKey とそのグループ
+      const jPtr = { x: 0, y: 0, in: false, inJ: false, dirty: false }; // マウスの位置（inJ = Journal の上）
+      const jBr = {                                   // AF ブラケット
+        x: -100, y: -100, w: 22, h: 22, xv: 0, yv: 0, wv: 0, hv: 0,
+        a: 0, la: 0, last: 0, holding: false, from: null, lean: 0, kbd: null, on: null
+      };
+      let jRaf = 0, jActive = false;
+      const jNow = () => performance.now();
+      const jInput = () => html.dataset.input;
+      const jDen = g => (g.key === 'hero' ? 2 : Math.max(1, g.N - 1));
+      const planeOf = c => JF.distAt(c._jz / jDen(c._jg));
 
       function renderJHero() {
         const px = reduceMotion.matches ? 0 : 1;
@@ -1529,7 +1644,7 @@
         jx.groups = [];
         list.forEach(c => {
           let g = jx.groups[jx.groups.length - 1];
-          if (!g || g.year !== c.dataset.year) jx.groups.push(g = { year: c.dataset.year, items: [] });
+          if (!g || g.year !== c.dataset.year) jx.groups.push(g = { year: c.dataset.year, key: c.dataset.year, items: [] });
           g.items.push(c);
         });
         jField.textContent = '';
@@ -1540,13 +1655,14 @@
           jField.appendChild(empty);
         }
         jx.groups.forEach(g => {
-          const N = g.items.length, st = JF.stepFor(N);
+          const N = g.N = g.items.length, st = JF.stepFor(N);
           g.el = document.createElement('div');
           g.el.className = 'j-year';
           g.el.innerHTML = '<div class="j-year-head"><span class="j-year-num"></span><span class="j-year-rule"></span><span class="j-year-n"></span></div><div class="j-cols is-masonry"></div>';
           g.el.querySelector('.j-year-num').textContent = g.year;
           g.el.querySelector('.j-year-n').textContent = `${pad(N)} entries`;
-          const colsEl = g.el.querySelector('.j-cols');
+          const colsEl = g.cont = g.el.querySelector('.j-cols');
+          g.el._jg = g;
           const cols = Array.from({ length: jx.nc }, () => {
             const el = document.createElement('div');
             el.className = 'j-col';
@@ -1556,31 +1672,19 @@
           g.items.forEach((c, j) => {
             const ar = JF.ARS[(+c.dataset.index * 7) % JF.ARS.length], [aw, ah] = ar.split('/').map(Number);
             c._jz = (j * st) % N;
+            c._jg = g;
             c.querySelector('img').style.aspectRatio = ar;
             const col = cols.reduce((a, b) => (b.h < a.h ? b : a));
             col.el.appendChild(c);
             col.h += ah / aw + .3; // キャプション分
           });
-          g.el.addEventListener('pointerenter', e => {
-            if (!isMouse(e) || jx.ay === g.year) return;
-            jx.ay = g.year;
-            renderArchive();
-          });
-          g.el.addEventListener('pointermove', e => {
-            if (!isMouse(e)) return;
-            jx.ay = g.year;
-            jx.bm = rel(e, g.el);
-            renderArchive();
-          });
-          g.el.addEventListener('pointerleave', e => {
-            if (!isMouse(e)) return;
-            jx.ay = null;
-            jx.bm = { x: .5, y: .5 };
-            renderArchive();
-          });
           jField.appendChild(g.el);
         });
+        // 消えたカードにピントを残さない
+        if (jFocus.card && !jFocus.card.isConnected) { jFocus.card = null; jFocus.group = null; }
+        if (jBr.kbd && !jBr.kbd.isConnected) jBr.kbd = null;
         renderArchive();
+        jOnLayout();
       }
 
       function renderArchive() {
@@ -1592,6 +1696,7 @@
           const N = g.items.length, act = jx.ay === g.year, den = Math.max(1, N - 1), zf = jx.tg[g.year] || 0;
           if (act) readout = `${g.year} · focus ${JF.distAt(zf / den)} · plane ${pad(zf + 1)} / ${pad(N)}`;
           g.el.classList.toggle('is-dim', jx.ay != null && !act);
+          if (jInput() === 'touch') return; // タッチ方式は jTick で毎フレーム描く
           g.items.forEach(c => {
             if (!act) {
               c.style.filter = 'blur(0px)';
@@ -1612,25 +1717,204 @@
         jTabs.forEach(b => b.classList.toggle('is-on', b.dataset.filter === jx.filter));
       }
 
-      if (jHero) {
-        jHero.addEventListener('pointermove', e => {
-          if (!isMouse(e) || reduceMotion.matches) return;
-          jx.hm = rel(e, jHero);
+      // ---------- マウス方式：ポインタの下のカードにピント ----------
+      // 毎フレーム elementFromPoint で調べる（ポインタを動かさずにホイールでスクロールしても追従する）
+      let jMouseSig = '';
+      function mouseFocus() {
+        const el = jPtr.in ? document.elementFromPoint(jPtr.x, jPtr.y) : null;
+        const inJ = !!el && viewJournal.contains(el);
+        let card = inJ ? el.closest('[data-card]') : null;
+        if (jBr.kbd) card = jBr.kbd; // キーボードで選んだカードが優先（ポインタを動かすと解除）
+        const heroIn = inJ && !!jHero && jHero.contains(el);
+        // ヒーロー：カードに乗ったらそのカード、ヒーローから出たらリセット（ホバーなしは 0 番）
+        if (card && card._jg === jHeroGroup) jx.hh = card._jz;
+        else if (!heroIn && !jBr.kbd) jx.hh = null;
+        jx.hm = heroIn && !reduceMotion.matches ? rel(jPtr.x, jPtr.y, jHero) : null;
+        // Archive：カーソルのある年をアクティブに。カードに乗ったらその年のピント面をそのカードへ
+        const yEl = card && card._jg && card._jg.key !== 'hero' ? card._jg.el : inJ && jField ? el.closest('.j-year') : null;
+        const g = yEl && yEl._jg;
+        if (g) {
+          jx.ay = g.year;
+          jx.bm = jBr.kbd ? { x: .5, y: .5 } : rel(jPtr.x, jPtr.y, g.el);
+          if (card && card._jg === g) jx.tg[g.year] = card._jz;
+        } else {
+          jx.ay = null;
+          jx.bm = { x: .5, y: .5 };
+        }
+        jFocus.card = card;
+        jFocus.group = card ? card._jg : null;
+        const sig = [jx.hh, jx.hm && jx.hm.x.toFixed(3), jx.hm && jx.hm.y.toFixed(3), jx.ay, jx.tg[jx.ay], jx.bm.x.toFixed(3), jx.bm.y.toFixed(3)].join();
+        if (sig !== jMouseSig) {
+          jMouseSig = sig;
           renderJHero();
-        });
-        jHero.addEventListener('pointerleave', e => {
-          if (!isMouse(e)) return;
-          jx.hh = null;
-          jx.hm = null;
-          renderJHero();
-        });
-        jHeroCards.forEach((el, idx) => el.addEventListener('pointerenter', e => {
-          if (!isMouse(e)) return;
-          jx.hh = idx;
-          renderJHero();
-        }));
-        renderJHero();
+          renderArchive();
+        }
+        return { inJ, card };
       }
+
+      function tickMouse(now) {
+        let inJ = false, card = null;
+        if (jPtr.dirty || jBr.kbd) { ({ inJ, card } = mouseFocus()); jPtr.inJ = inJ; }
+        else { card = jFocus.card; inJ = jPtr.inJ; }
+        jPtr.dirty = false;
+        const img = card && (card.querySelector('img') || card);
+        let target;
+        if (img) target = JF.inflate(img.getBoundingClientRect(), jBr.holding ? 3 : 10);
+        else {
+          const z = jBr.holding ? 14 : 22;
+          target = { x: jPtr.x - z / 2, y: jPtr.y - z / 2, w: z, h: z };
+        }
+        const visible = jBr.kbd || (jPtr.in && inJ);
+        return {
+          target,
+          live: visible ? JF.bracketLive(now, jBr.last, false) : 0,
+          up: .18,
+          from: jBr.kbd ? null : { x: jPtr.x, y: jPtr.y },
+          label: card ? planeOf(card) : null,
+          dot: !card && !jBr.kbd,
+          busy: false
+        };
+      }
+
+      // タッチ方式（Task 4 で中身を入れる）
+      function tickTouch() {
+        return { target: null, live: 0, up: .35, from: null, label: null, dot: false, busy: false };
+      }
+      function jOnLayout() {}
+      function jOnInput() {}
+
+      // ---------- AF ブラケットの描画と rAF ループ ----------
+      function drawBracket(t, now) {
+        const reduce = reduceMotion.matches;
+        let busy = false;
+        if (t.target) {
+          // 出現：opacity がほぼ 0 から操作が始まったら、22×22 を指先（マウスならポインタ）に置いてから広げる
+          if (jBr.a < .03 && t.live > 0) {
+            const f = t.from || { x: t.target.x + t.target.w / 2, y: t.target.y + t.target.h / 2 };
+            Object.assign(jBr, { x: f.x - 11, y: f.y - 11, w: 22, h: 22, xv: 0, yv: 0, wv: 0, hv: 0 });
+          }
+          const tg = { x: t.target.x + jBr.lean, y: t.target.y, w: t.target.w, h: t.target.h };
+          ['x', 'y', 'w', 'h'].forEach(k => {
+            if (reduce) { jBr[k] = tg[k]; jBr[k + 'v'] = 0; return; }
+            const [c, v] = JF.springStep(jBr[k], jBr[k + 'v'], tg[k]);
+            jBr[k] = c; jBr[k + 'v'] = v;
+            if (Math.abs(tg[k] - c) > .3 || Math.abs(v) > .05) busy = true;
+          });
+          // ラベル：マウスはカードの上で表示（CSS transition）、タッチはロックしたら表示
+          const lab = t.label != null ? (t.lock ? (JF.isLocked(jBr, tg) ? 1 : 0) : 1) : 0;
+          jBr.la = reduce || !t.lock ? lab : JF.approach(jBr.la, lab, .2, .001);
+          if (jBr.la !== lab) busy = true;
+          if (t.label != null) afDist.textContent = t.label;
+        }
+        const aT = t.target ? t.live : 0;
+        jBr.a = reduce ? aT : JF.approach(jBr.a, aT, aT > jBr.a ? t.up : .18, .001);
+        if (jBr.a !== aT || t.live > 0) busy = true;
+        afEl.style.transform = `translate(${jBr.x.toFixed(1)}px, ${jBr.y.toFixed(1)}px)`;
+        afEl.style.width = jBr.w.toFixed(1) + 'px';
+        afEl.style.height = jBr.h.toFixed(1) + 'px';
+        afEl.style.opacity = jBr.a.toFixed(3);
+        afLabel.style.opacity = jBr.la.toFixed(3);
+        afPt.style.transform = `translate(${(jPtr.x - 2).toFixed(1)}px, ${(jPtr.y - 2).toFixed(1)}px)`;
+        afPt.style.opacity = t.dot ? jBr.a.toFixed(3) : 0;
+        // キーボードで選んだカード：ブラケットが出ている間はフォーカスリングを消す
+        const on = jBr.kbd && jBr.a >= .03 ? jBr.kbd : null;
+        if (on !== jBr.on) {
+          if (jBr.on) jBr.on.classList.remove('af-on');
+          if (on) on.classList.add('af-on');
+          jBr.on = on;
+        }
+        return busy;
+      }
+
+      function jTick() {
+        jRaf = 0;
+        if (!jActive) return;
+        const now = jNow();
+        const t = jInput() === 'mouse' ? tickMouse(now) : tickTouch(now);
+        const busy = drawBracket(t, now) || t.busy;
+        if (busy) kick();
+      }
+      function kick() {
+        if (jActive && !jRaf) jRaf = requestAnimationFrame(jTick);
+      }
+      function touchNote() { jBr.last = jNow(); kick(); }
+
+      // ビュー切替：Journal 以外ではループを止め、ブラケットを消す
+      function setJournalActive(on) {
+        if (on === jActive) return;
+        jActive = on;
+        if (!on) {
+          if (jRaf) cancelAnimationFrame(jRaf);
+          jRaf = 0;
+          jBr.a = 0; jBr.la = 0; jBr.holding = false; jBr.kbd = null;
+          afEl.style.opacity = 0; afPt.style.opacity = 0;
+          if (jBr.on) { jBr.on.classList.remove('af-on'); jBr.on = null; }
+        } else {
+          jOnInput();
+          kick();
+        }
+      }
+
+      // ---------- 入力方式（画面幅ではなく直前の入力で切り替える） ----------
+      function setInput(v) {
+        if (!v || v === html.dataset.input) return;
+        html.dataset.input = v;
+        jBr.a = 0; // 新しい入力の位置から出直す
+        afEl.style.opacity = 0; afPt.style.opacity = 0;
+        jOnInput();
+        if (v === 'mouse') { jMouseSig = ''; renderJHero(); renderArchive(); }
+        kick();
+      }
+      html.dataset.input = window.matchMedia('(hover: hover) and (pointer: fine)').matches ? 'mouse' : 'touch';
+      // 疑似マウスイベント（タップ後の mousemove など）は使わず、Pointer Events の pointerType だけで判定する
+      const onPointerType = e => setInput(JF.inputFromPointerType(e.pointerType));
+      window.addEventListener('pointerdown', onPointerType, { capture: true, passive: true });
+      window.addEventListener('pointermove', onPointerType, { capture: true, passive: true });
+
+      // マウスの動き
+      document.addEventListener('pointermove', e => {
+        if (e.pointerType !== 'mouse') return;
+        jPtr.x = e.clientX; jPtr.y = e.clientY; jPtr.in = true; jPtr.dirty = true;
+        jBr.kbd = null;
+        if (jActive) touchNote();
+      }, { passive: true });
+      document.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'mouse') return;
+        jBr.holding = true;
+        if (jActive) touchNote();
+      }, { passive: true });
+      document.addEventListener('pointerup', e => {
+        if (e.pointerType !== 'mouse') return;
+        jBr.holding = false;
+        if (jActive) touchNote();
+      }, { passive: true });
+      document.addEventListener('pointerout', e => {
+        if (e.pointerType !== 'mouse' || e.relatedTarget) return;
+        jPtr.in = false; jPtr.dirty = true; // ウィンドウの外
+        if (jActive) kick();
+      }, { passive: true });
+      window.addEventListener('scroll', () => {
+        if (!jActive) return;
+        if (jInput() === 'mouse' && jPtr.in && !jBr.kbd) { jPtr.dirty = true; touchNote(); }
+      }, { passive: true });
+
+      // キーボード：:focus-visible のカードにブラケットを付け、そこにピントを合わせる
+      viewJournal.addEventListener('focusin', e => {
+        const card = e.target.closest && e.target.closest('[data-card]');
+        if (!card || !card.matches(':focus-visible')) return;
+        jBr.kbd = card;
+        jFocus.card = card; jFocus.group = card._jg;
+        jOnInput(card);
+        touchNote();
+      });
+      viewJournal.addEventListener('focusout', e => {
+        if (e.target !== jBr.kbd) return;
+        jBr.kbd = null;
+        if (jInput() === 'mouse') jPtr.dirty = true;
+        kick();
+      });
+
+      if (jHero) renderJHero();
 
       if (jField) {
         // 件数は Archive 対象（ヒーロー 3 件を除く）内で数える
@@ -1644,12 +1928,6 @@
             buildArchive();
           });
         });
-        jCards.forEach(c => c.addEventListener('pointerenter', e => {
-          if (!isMouse(e)) return;
-          jx.ay = c.dataset.year;
-          jx.tg[c.dataset.year] = c._jz;
-          renderArchive();
-        }));
         // カラム数は Archive の幅で決める（表示中のみ幅が取れるので 0 は無視）
         new ResizeObserver(([e]) => {
           const w = e.contentRect.width;
@@ -1659,7 +1937,7 @@
         }).observe(jField);
         renderJControls();
       }
-      reduceMotion.addEventListener('change', () => { renderJHero(); renderArchive(); });
+      reduceMotion.addEventListener('change', () => { jMouseSig = ''; renderJHero(); renderArchive(); kick(); });
 
       // ---------- About ----------
       const about = $('about');
@@ -1693,6 +1971,7 @@
         viewTop.hidden = route.view !== 'top';
         viewAlbum.hidden = route.view !== 'album';
         viewJournal.hidden = route.view !== 'journal';
+        setJournalActive(route.view === 'journal');
         viewPages.hidden = route.view !== 'about';
         about.hidden = route.view !== 'about';
         html.classList.toggle('is-locked', route.view === 'album' || route.view === 'about');
