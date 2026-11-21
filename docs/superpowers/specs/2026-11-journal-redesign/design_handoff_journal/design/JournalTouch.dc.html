@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Journal — タッチ操作（合焦ライン・列切替・AF ブラケット）</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+a{color:inherit;text-decoration:none}
+a:hover{color:inherit}
+button{font:inherit;color:inherit}
+.scr{scrollbar-width:none}
+.scr::-webkit-scrollbar{display:none}
+@keyframes af{from{transform:scale(1.14);opacity:0}to{transform:none;opacity:1}}
+@keyframes toast{from{transform:translate(-50%,8px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:#1c1b19}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-11px;border-radius:50%;background:#e1dfda;border:1px solid #1c1b19}
+input[type=range]::-moz-range-track{height:1px;background:#1c1b19}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#e1dfda;border:1px solid #1c1b19}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" style="width:390px;height:844px;position:relative;overflow:hidden;background:#e1dfda;color:#1c1b19;font-family:'IBM Plex Mono',monospace;-webkit-font-smoothing:antialiased">
+  <div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;z-index:20;opacity:{{ vigOp }};transition:opacity .8s;background:radial-gradient(ellipse 80% 75% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.3) 100%)"></div>
+  <div ref="{{ scRef }}" onScroll="{{ onScroll }}" onTouchStart="{{ tStart }}" onTouchMove="{{ tMove }}" onTouchEnd="{{ gEnd }}" onTouchCancel="{{ gEnd }}" onMouseMove="{{ onMouse }}" onPointerDown="{{ pDown }}" onPointerMove="{{ pMove }}" onPointerUp="{{ pUp }}" onPointerLeave="{{ pUp }}" onClickCapture="{{ clickCap }}" onWheel="{{ onWheel }}" class="scr" style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden">
+    <header style="position:sticky;top:0;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:18px 20px 22px;background:linear-gradient(#e1dfda 55%, rgba(225,223,218,0))">
+      <div style="display:flex;align-items:baseline;gap:10px;font-family:'Instrument Serif','Shippori Mincho',serif;font-size:21px;line-height:1;white-space:nowrap">
+        <a href="#">Hal Sakaguchi</a>
+        <span style="display:flex;align-items:center;gap:10px;color:#5f5b55"><span style="width:1px;height:0.85em;background:rgba(28,27,25,0.35)"></span><span>Journal</span></span>
+      </div>
+      <button aria-label="メニュー" style="width:44px;height:44px;margin:-12px -12px -12px 0;display:flex;align-items:center;justify-content:center;background:none;border:0;cursor:pointer">
+        <svg width="20" height="10" viewBox="0 0 20 10" aria-hidden="true"><path d="M0 1h20M0 9h20" stroke="#1c1b19" stroke-width="1"></path></svg>
+      </button>
+    </header>
+
+    <section style="padding:0 20px;display:flex;flex-direction:column;gap:22px;position:relative;transform:{{ heroBr }};transform-origin:{{ heroBo }}">
+      <a href="#" data-k="{{ main.k }}" data-g="{{ main.g }}" data-z="{{ main.z }}" onClick="{{ main.open }}" style="position:relative;display:block;filter:{{ main.flt }};opacity:{{ main.op }};transform:{{ main.tr }};transition:opacity .3s ease, transform .8s cubic-bezier(.2,.7,.2,1)">
+        <img src="{{ main.thumb }}" alt="{{ main.title }}" style="width:100%;aspect-ratio:4/5;object-fit:cover;display:block">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top, rgba(12,11,10,0.7) 0%, rgba(12,11,10,0) 55%)"></div>
+        <div style="position:absolute;left:20px;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px;color:#f2efe9">
+          <span style="font-size:10px;letter-spacing:0.16em;text-transform:uppercase">Latest — {{ main.tag }} — {{ main.date }}</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:28px;line-height:1.25">{{ main.title }}</span>
+        </div>
+        <sc-if value="{{ main.on }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;inset:12px;pointer-events:none;animation:af .28s ease-out">
+            <span style="position:absolute;left:0;top:0;width:16px;height:16px;border-left:1.5px solid #f2efe9;border-top:1.5px solid #f2efe9"></span>
+            <span style="position:absolute;right:0;top:0;width:16px;height:16px;border-right:1.5px solid #f2efe9;border-top:1.5px solid #f2efe9"></span>
+            <span style="position:absolute;left:0;bottom:0;width:16px;height:16px;border-left:1.5px solid #f2efe9;border-bottom:1.5px solid #f2efe9"></span>
+            <span style="position:absolute;right:0;bottom:0;width:16px;height:16px;border-right:1.5px solid #f2efe9;border-bottom:1.5px solid #f2efe9"></span>
+          </div>
+        </sc-if>
+      </a>
+      <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px">
+        <sc-for list="{{ side }}" as="c" hint-placeholder-count="2">
+          <a href="#" data-k="{{ c.k }}" data-g="{{ c.g }}" data-z="{{ c.z }}" onClick="{{ c.open }}" style="display:flex;flex-direction:column;gap:8px;filter:{{ c.flt }};opacity:{{ c.op }};transform:{{ c.tr }};transition:opacity .3s ease, transform .8s cubic-bezier(.2,.7,.2,1)">
+            <div style="position:relative">
+              <img src="{{ c.thumb }}" alt="{{ c.title }}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block">
+              <sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;inset:8px;pointer-events:none;animation:af .28s ease-out">
+                  <span style="position:absolute;left:0;top:0;width:12px;height:12px;border-left:1.5px solid #f2efe9;border-top:1.5px solid #f2efe9"></span>
+                  <span style="position:absolute;right:0;top:0;width:12px;height:12px;border-right:1.5px solid #f2efe9;border-top:1.5px solid #f2efe9"></span>
+                  <span style="position:absolute;left:0;bottom:0;width:12px;height:12px;border-left:1.5px solid #f2efe9;border-bottom:1.5px solid #f2efe9"></span>
+                  <span style="position:absolute;right:0;bottom:0;width:12px;height:12px;border-right:1.5px solid #f2efe9;border-bottom:1.5px solid #f2efe9"></span>
+                </div>
+              </sc-if>
+            </div>
+            <span style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#5f5b55">{{ c.date }} · {{ c.tag }}</span>
+            <span style="font-family:'Shippori Mincho',serif;font-size:16px;line-height:1.4">{{ c.title }}</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="padding:48px 20px 40px;display:flex;flex-direction:column;gap:6px">
+      <h2 style="margin:0;padding-bottom:10px;font-family:'Instrument Serif','Shippori Mincho',serif;font-weight:400;font-size:40px;line-height:1">Archive</h2>
+      <div style="display:flex;gap:22px;align-items:center;border-bottom:1px solid rgba(28,27,25,0.14);overflow-x:auto" class="scr">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.go }}" style="display:flex;gap:6px;align-items:baseline;flex:none;min-height:44px;background:none;border:0;border-bottom:1px solid {{ t.bd }};margin-bottom:-1px;padding:0;cursor:pointer;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:{{ t.col }}"><span>{{ t.label }}</span><span style="font-size:10px">{{ t.n }}</span></button>
+        </sc-for>
+      </div>
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+        <div style="display:flex;flex-direction:column;gap:20px;padding-top:32px">
+          <div style="display:flex;align-items:baseline;gap:14px">
+            <span style="font-family:'Instrument Serif',serif;font-size:30px;line-height:1;color:{{ g.col }};transition:color .4s">{{ g.year }}</span>
+            <span style="flex:1;height:1px;background:rgba(28,27,25,0.14)"></span>
+            <span style="font-size:10px;letter-spacing:0.14em;color:#5f5b55">{{ g.n }}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:14px;align-items:start;position:relative;transform:{{ g.br }};transform-origin:{{ g.bo }}">
+            <sc-for list="{{ g.cols }}" as="col" hint-placeholder-count="2">
+              <div style="display:flex;flex-direction:column;gap:26px;min-width:0">
+                <sc-for list="{{ col.items }}" as="c" hint-placeholder-count="3">
+                  <a href="#" data-k="{{ c.k }}" data-g="{{ c.g }}" data-z="{{ c.z }}" onClick="{{ c.open }}" style="display:flex;flex-direction:column;gap:8px;filter:{{ c.flt }};opacity:{{ c.op }};transform:{{ c.tr }};transition:opacity .3s ease, transform .8s cubic-bezier(.2,.7,.2,1)">
+                    <div style="position:relative">
+                      <img src="{{ c.thumb }}" alt="{{ c.title }}" loading="lazy" style="width:100%;aspect-ratio:{{ c.ar }};object-fit:cover;display:block;background:rgba(28,27,25,0.14);box-shadow:0 20px 40px -28px rgba(40,35,30,0.45)">
+                      <sc-if value="{{ c.on }}" hint-placeholder-val="{{ false }}">
+                        <div style="position:absolute;inset:8px;pointer-events:none;animation:af .28s ease-out">
+                          <span style="position:absolute;left:0;top:0;width:12px;height:12px;border-left:1.5px solid #f2efe9;border-top:1.5px solid #f2efe9"></span>
+                          <span style="position:absolute;right:0;top:0;width:12px;height:12px;border-right:1.5px solid #f2efe9;border-top:1.5px solid #f2efe9"></span>
+                          <span style="position:absolute;left:0;bottom:0;width:12px;height:12px;border-left:1.5px solid #f2efe9;border-bottom:1.5px solid #f2efe9"></span>
+                          <span style="position:absolute;right:0;bottom:0;width:12px;height:12px;border-right:1.5px solid #f2efe9;border-bottom:1.5px solid #f2efe9"></span>
+                        </div>
+                      </sc-if>
+                    </div>
+                    <span style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#5f5b55">{{ c.date }} · {{ c.tag }}</span>
+                    <span style="font-family:'Shippori Mincho',serif;font-size:15px;line-height:1.45">{{ c.title }}</span>
+                  </a>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+    <footer style="padding:28px 20px {{ footPad }};display:flex;justify-content:space-between;font-size:10px;letter-spacing:0.12em;color:#5f5b55;border-top:1px solid rgba(28,27,25,0.14)">
+      <span>© Hal Sakaguchi</span><span>Journal</span>
+    </footer>
+  </div>
+
+  <sc-if value="{{ guide }}" hint-placeholder-val="{{ true }}">
+    <div aria-hidden="true" style="position:absolute;left:0;right:0;top:{{ lineTop }};height:0;z-index:25;pointer-events:none;transition:top .25s ease">
+      <span style="position:absolute;left:0;top:0;width:10px;height:1px;background:#1c1b19;opacity:.55"></span>
+      <span style="position:absolute;right:0;top:0;width:10px;height:1px;background:#1c1b19;opacity:.55"></span>
+      <span style="position:absolute;left:{{ afX }};top:-4px;width:8px;height:8px;margin-left:-4px;border:1px solid #1c1b19;border-radius:50%;background:rgba(225,223,218,0.6);opacity:{{ afOp }};transition:left .3s cubic-bezier(.2,.7,.2,1), opacity .3s"></span>
+    </div>
+  </sc-if>
+
+  <div style="position:absolute;left:50%;bottom:{{ pillBottom }};transform:translateX(-50%);z-index:35;pointer-events:none;display:flex;gap:10px;align-items:center;padding:8px 14px;background:rgba(225,223,218,0.9);border:1px solid rgba(28,27,25,0.2);backdrop-filter:blur(8px);font-size:10px;letter-spacing:0.12em;white-space:nowrap;color:#1c1b19">
+    <span style="width:7px;height:7px;border-radius:50%;background:{{ lampBg }};border:1px solid #1c1b19;transition:background .2s"></span>
+    <span>{{ readout }}</span>
+  </div>
+
+  <sc-if value="{{ ring }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;right:0;bottom:0;z-index:40;padding:6px 20px 18px;background:rgba(225,223,218,0.94);border-top:1px solid rgba(28,27,25,0.14);backdrop-filter:blur(10px)">
+      <label for="ring" style="display:flex;justify-content:space-between;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#5f5b55;padding-top:6px"><span>Focus ring</span><span style="color:#1c1b19">{{ ringDist }}</span></label>
+      <input id="ring" type="range" min="0" max="100" step="1" value="{{ ringVal }}" onChange="{{ onRing }}" onInput="{{ onRing }}">
+      <div aria-hidden="true" style="display:flex;justify-content:space-between;font-size:9px;letter-spacing:0.08em;color:#5f5b55"><span>0.8m</span><span>1.5</span><span>3</span><span>6</span><span>∞</span></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position:absolute;left:50%;top:76px;transform:translateX(-50%);z-index:45;padding:10px 16px;background:#1c1b19;color:#e1dfda;font-size:11px;letter-spacing:0.06em;white-space:nowrap;animation:toast .25s ease-out">記事を開く → {{ toast }}</div>
+  </sc-if>
+  <div ref="{{ afRef }}" aria-hidden="true" style="position:absolute;left:0;top:0;width:22px;height:22px;z-index:28;pointer-events:none;opacity:0;color:#1c1b19">
+    <span style="position:absolute;left:0;top:0;width:11px;height:11px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor"></span>
+    <span style="position:absolute;right:0;top:0;width:11px;height:11px;border-right:1.5px solid currentColor;border-top:1.5px solid currentColor"></span>
+    <span style="position:absolute;left:0;bottom:0;width:11px;height:11px;border-left:1.5px solid currentColor;border-bottom:1.5px solid currentColor"></span>
+    <span style="position:absolute;right:0;bottom:0;width:11px;height:11px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor"></span>
+    <div ref="{{ afLRef }}" style="position:absolute;left:0;bottom:calc(100% + 7px);display:flex;gap:12px;align-items:baseline;white-space:nowrap;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;opacity:0">
+      <span style="display:flex;gap:6px;align-items:center"><span style="width:6px;height:6px;border-radius:50%;background:currentColor"></span>AF</span>
+      <span>{{ afDist }}</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;AF-C&quot;,&quot;AF-S&quot;],&quot;default&quot;:&quot;AF-C&quot;,&quot;section&quot;:&quot;Focus&quot;},&quot;control&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;line&quot;,&quot;ring&quot;],&quot;default&quot;:&quot;line&quot;,&quot;section&quot;:&quot;Focus&quot;},&quot;guide&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;section&quot;:&quot;Focus&quot;},&quot;finger&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;relative&quot;,&quot;absolute&quot;,&quot;off&quot;],&quot;default&quot;:&quot;relative&quot;,&quot;section&quot;:&quot;Focus&quot;},&quot;swipe&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:12,&quot;max&quot;:64,&quot;step&quot;:2,&quot;unit&quot;:&quot;px&quot;,&quot;default&quot;:12,&quot;section&quot;:&quot;Focus&quot;},&quot;invert&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;section&quot;:&quot;Focus&quot;},&quot;breathing&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:6,&quot;step&quot;:0.2,&quot;unit&quot;:&quot;%&quot;,&quot;default&quot;:2,&quot;section&quot;:&quot;Lens&quot;},&quot;parallax&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;section&quot;:&quot;Depth&quot;},&quot;vignette&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;section&quot;:&quot;Lens&quot;},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+const IMG = ["55572708128_bf55d44924", "55573018170_b2140417d1", "55572708113_3faae83a39", "55572761309_88f74974a6", "55573018145_38fa068926", "55572708088_8df47bfbe1", "55572708023_1e66c581fe", "55572708008_dc551e203e", "55571566062_7d8f4efe1a", "55572599226_bc1f73bd79"].map(s => `https://live.staticflickr.com/65535/${s}_c.jpg`);
+const TAGS = { T: "Travel", G: "Gear", N: "News" };
+const RAW = `2026-10-04|T|台南、路地の午後
+2026-09-21|G|35mm 単焦点に戻った理由
+2026-09-08|T|霧の上高地、朝五時
+2026-08-17|N|写真展「残影」開催のお知らせ
+2026-07-30|T|竹富島の白い道
+2026-07-02|G|フィルムシミュレーション設定 2026
+2026-06-14|T|鎌倉、紫陽花の終わり
+2026-05-03|T|しまなみ海道を走る
+2026-03-22|G|雨天撮影の装備メモ
+2026-02-11|T|白川郷、雪の夜
+2026-01-05|N|サイトをリニューアルしました
+2025-12-14|T|函館、夜景の外側
+2025-11-02|T|金沢、早朝の東山
+2025-10-12|G|RAW 現像のワークフロー
+2025-09-06|T|佐渡、たらい舟
+2025-08-15|T|屋久島、苔と光
+2025-07-19|N|ZINE 第2号 頒布について
+2025-06-01|G|三脚を軽くした話
+2025-05-04|T|尾道の坂と猫
+2025-03-30|T|ソウル、乙支路の看板
+2025-02-16|G|夜景の露出、覚え書き
+2025-01-12|T|釧路湿原で待った一時間
+2024-12-01|T|台北、夜市の湯気
+2024-10-20|N|グループ展に参加します
+2024-09-14|G|旅に持っていくレンズ 3 本
+2024-08-03|T|小豆島、フェリーの窓から
+2024-06-22|T|奈良井宿の軒先
+2024-05-05|G|Helios 44-2 を一年使って`;
+const POSTS = RAW.split("\n").map((l, i) => {
+  const [d, tag, title] = l.split("|"), [y, m, dd] = d.split("-");
+  return { i, tag, title, year: y, date: `${y}.${m}.${dd}`, img: IMG[(i * 3) % IMG.length] };
+});
+const ARS = ["4/5", "3/2", "1/1", "3/4", "4/3", "2/3"];
+const MAXB = 4;
+const pad2 = n => String(n).padStart(2, "0");
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+function stepFor(N) { if (N < 3) return 1; let s = Math.max(2, Math.round(N * 0.38)); while (gcd(s, N) !== 1) s++; return s; }
+const distAt = t => { const m = 0.8 * Math.pow(15, t); return m < 10 ? m.toFixed(1) + " m" : Math.round(m) + " m"; };
+const blurAt = (dz, N) => dz <= 0.001 ? 0 : MAXB * (0.2 * Math.min(1, dz) + 0.8 * Math.max(0, dz - 1) / Math.max(1, N - 2));
+
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { fk: "h0", ga: "hero", zf: 0, hunting: false, f: "all", ring: 0, fy: 338, toast: null, afx: null, tg: {}, av: {}, to: { x: 175, y: 220, w: 350, h: 600 }, ao: { x: 175, y: 220, w: 350, h: 600 } };
+  }
+  componentDidMount() { const lp = () => { this._lp = requestAnimationFrame(lp); this.afTick(); }; this._lp = requestAnimationFrame(lp); this._t0 = setTimeout(() => { if (this.fmode() === "relative" && this.sc) { this.col = 0; this.fx = this.colX(0); this.setState({ afx: this.colX(0) / this.sk() }); } this.pick(); }, 80); }
+  componentWillUnmount() { clearTimeout(this._t0); clearTimeout(this._st); clearTimeout(this._tt); cancelAnimationFrame(this._raf); cancelAnimationFrame(this.raf); cancelAnimationFrame(this._lp); }
+  mode() { return this.props.mode ?? "AF-C"; }
+  ctl() { return this.props.control ?? "line"; }
+  scRef = el => { this.sc = el; };
+  // focus pull (ported): the focus plane eases toward its target each frame, so blur, CA and breathing move together like a focus ring
+  aim(key, z) {
+    this.setState(s => ({ tg: { ...s.tg, [key]: z } }));
+    if (this.raf) return;
+    const step = () => {
+      let moving = false;
+      this.setState(s => {
+        const av = { ...s.av };
+        Object.keys(s.tg).forEach(k => { const t = s.tg[k], c = av[k] ?? t, n = c + (t - c) * 0.2; av[k] = Math.abs(t - n) < 0.01 ? t : n; if (av[k] !== t) moving = true; });
+        // the breathing origin glides to the newly focused card with the same easing, so the frame never jumps
+        const e = (t, c) => { const n = c + (t - c) * 0.2; if (Math.abs(t - n) < 0.5) return t; moving = true; return n; };
+        const ao = { x: e(s.to.x, s.ao.x), y: e(s.to.y, s.ao.y), w: s.to.w, h: s.to.h };
+        return { av, ao };
+      }, () => { this.raf = moving ? requestAnimationFrame(step) : 0; });
+    };
+    this.raf = requestAnimationFrame(step);
+  }
+  // focus line sits at 40% of the viewport; over the last 70% of a screen of scroll it slides down so the last cards can still be reached
+  lineY() {
+    const sc = this.sc; if (!sc) return 338;
+    const h = sc.clientHeight, max = sc.scrollHeight - h, tail = h * 0.7;
+    const t = Math.max(0, Math.min(1, (sc.scrollTop - (max - tail)) / tail));
+    return Math.round(h * (0.4 + 0.42 * t));
+  }
+  // finger x (relative to the screen) picks the column; it is kept after the finger lifts so momentum scrolling stays in that column
+  setFx(x) { if (this.fmode() !== "absolute" || !this.sc) return; const r = this.sc.getBoundingClientRect(); this.fx = Math.max(0, Math.min(r.width, x - r.left)); this.setState({ afx: this.fx }); this.onScroll(); }
+  fmode() { const f = this.props.finger; return f === true ? "absolute" : f === false ? "off" : (f ?? "relative"); }
+  sk() { const r = this.sc && this.sc.getBoundingClientRect(); return r && r.width ? r.width / 390 : 1; }
+  colX(c) { return (c ? 0.75 : 0.25) * this.sc.getBoundingClientRect().width; } // screen px from the scroller's left edge
+  setCol(c) { this.col = c; this.fx = this.colX(c); this.onScroll(); }
+  // relative column switch: the finger's start point is the anchor; a short sideways nudge (> swipe px) moves one column
+  touchAt(x, y) { const r = this.root && this.root.getBoundingClientRect(), k = this.sk(); if (r) this.tp = { x: (x - r.left) / k, y: (y - r.top) / k, t: Date.now() }; this.lastI = Date.now(); }
+  spr(o, key, t, K, D) { const v = key + "v"; o[v] = ((o[v] || 0) + (t - o[key]) * K) * D; o[key] += o[v]; }
+  // PC-A on a phone: the frame exists only while you interact. It grows out of the fingertip, springs onto the focused
+  // photo (with a little overshoot, like an AF lock), leans with the finger before a column switch, and fades ~0.9 s after you stop.
+  afTick() {
+    const f = this.afEl, lb = this.afLEl, root = this.root, sc = this.sc; if (!f || !root || !sc) return;
+    const F = this.F || (this.F = { x: -100, y: -100, w: 22, h: 22, a: 0, la: 0 });
+    const k = this.sk(), rr = root.getBoundingClientRect(), now = Date.now();
+    const dt = now - (this.lastI || 0), live = !this.lastI ? 0 : (this.g || this.md) ? 1 : dt < 900 ? 1 : Math.max(0, 1 - (dt - 900) / 450);
+    const img = sc.querySelector(`[data-k="${this.state.fk}"] img`); if (!img) return;
+    const b = img.getBoundingClientRect(), p = (this.g || this.md) ? 6 : 10;
+    const t = { x: (b.left - rr.left) / k - p + (this.lean || 0), y: (b.top - rr.top) / k - p, w: b.width / k + p * 2, h: b.height / k + p * 2 };
+    if (F.a < 0.03 && live > 0) {
+      // appear: start as the small PC cursor at the fingertip (or the card's centre for wheel/trackpad scrolling)
+      const tp = this.tp && now - this.tp.t < 600 ? this.tp : { x: t.x + t.w / 2, y: t.y + t.h / 2 };
+      Object.assign(F, { x: tp.x - 11, y: tp.y - 11, w: 22, h: 22, xv: 0, yv: 0, wv: 0, hv: 0 });
+    }
+    ["x", "y", "w", "h"].forEach(key => this.spr(F, key, t[key], 0.2, 0.64));
+    F.a += (live - F.a) * (live > F.a ? 0.35 : 0.18);
+    const locked = Math.abs(F.w - t.w) < 6 && Math.abs(F.x - t.x) < 6;
+    F.la += ((locked ? 1 : 0) - F.la) * 0.2;
+    f.style.transform = `translate(${F.x.toFixed(1)}px, ${F.y.toFixed(1)}px)`; f.style.width = F.w.toFixed(1) + "px"; f.style.height = F.h.toFixed(1) + "px"; f.style.opacity = F.a.toFixed(3);
+    if (lb) lb.style.opacity = F.la.toFixed(3);
+  }
+  gStart(x) {
+    const m = this.fmode(); if (m === "off" || !this.sc) return;
+    if (m === "absolute") return this.setFx(x);
+    if (this.col == null) { const r = this.sc.getBoundingClientRect(), cur = this.sc.querySelector(`[data-k="${this.state.fk}"]`), b = cur && cur.getBoundingClientRect(); this.col = b && (b.left + b.right) / 2 - r.left >= r.width / 2 ? 1 : 0; }
+    this.g = { x0: x, c0: this.col, sh: 0 };
+  }
+  gMove(x) {
+    const m = this.fmode();
+    if (m === "absolute") return this.setFx(x);
+    const g = this.g; if (!g || m === "off") return;
+    const k = this.sk(), dx = (x - g.x0) / k * ((this.props.invert ?? false) ? -1 : 1), T = this.props.swipe ?? 24;
+    // hysteresis: once across, coming back only half way keeps the new column
+    g.sh = dx > T || (g.sh === 1 && dx > T * 0.5) ? 1 : dx < -T || (g.sh === -1 && dx < -T * 0.5) ? -1 : 0;
+    const col = Math.max(0, Math.min(1, g.c0 + g.sh));
+    if (col !== this.col) this.setCol(col);
+    // AF point leans with the finger, then snaps across once past the threshold
+    const lean = g.sh === 0 ? Math.max(-T, Math.min(T, dx)) * 0.7 : 0;
+    this.lean = lean; this.lastI = Date.now();
+    this.setState({ afx: this.colX(col) / k + lean });
+  }
+  gEnd = () => { this.g = null; this.lean = 0; if (this.fmode() === "relative" && this.col != null) this.setState({ afx: this.colX(this.col) / this.sk() }); };
+  tStart = e => { const t = e.touches && e.touches[0]; if (t) { this.touchAt(t.clientX, t.clientY); this.gStart(t.clientX); } };
+  tMove = e => { const t = e.touches && e.touches[0]; if (t) this.gMove(t.clientX); };
+  onMouse = e => { if (!this.md) this.setFx(e.clientX); };
+  // PC test harness: drag with the mouse to scroll like a finger (clicks still open cards)
+  pDown = e => { if (e.pointerType !== "mouse" || e.button !== 0 || !this.sc) return; e.preventDefault(); this.touchAt(e.clientX, e.clientY); this.md = { x: e.clientX, y: e.clientY, top: this.sc.scrollTop, moved: false }; this.gStart(e.clientX); };
+  pMove = e => { const d = this.md; if (!d) return; const dy = e.clientY - d.y; if (Math.abs(dy) > 4 || Math.abs(e.clientX - d.x) > 4) d.moved = true; this.sc.scrollTop = d.top - dy / this.sk(); this.gMove(e.clientX); };
+  pUp = () => { if (!this.md) return; this.dragged = this.md.moved; this.md = null; this.gEnd(); };
+  clickCap = e => { if (this.dragged) { e.preventDefault(); e.stopPropagation(); this.dragged = false; } };
+  // trackpad: a sideways two-finger swipe also switches column
+  onWheel = e => {
+    if (this.fmode() !== "relative" || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    this.wx = (this.wx || 0) + e.deltaX; this.lastI = Date.now();
+    if (Math.abs(this.wx) > 40) { const c = Math.max(0, Math.min(1, (this.col ?? 0) + ((this.wx > 0) !== (this.props.invert ?? false) ? 1 : -1))); this.wx = 0; if (c !== this.col) { this.setCol(c); this.setState({ afx: this.colX(c) / this.sk() }); } }
+  };
+  onScroll = () => {
+    this.lastI = Date.now();
+    if (this.mode() === "AF-S" && this.ctl() === "line") {
+      if (!this.state.hunting) this.setState({ hunting: true });
+      clearTimeout(this._st);
+      this._st = setTimeout(() => { this.setState({ hunting: false }); this.pick(); }, 160);
+      const fy = this.lineY(); if (fy !== this.state.fy) this.setState({ fy });
+      return;
+    }
+    if (!this._raf) this._raf = requestAnimationFrame(() => { this._raf = 0; this.pick(); });
+  };
+  pick() {
+    const sc = this.sc; if (!sc) return;
+    const r = sc.getBoundingClientRect(), fyl = this.lineY(), fy = r.top + fyl;
+    let best = null, bs = Infinity, cur = null, cd = Infinity;
+    sc.querySelectorAll("[data-k]").forEach(el => {
+      const b = el.getBoundingClientRect();
+      const d = fy < b.top ? b.top - fy : fy > b.bottom ? fy - b.bottom : 0;
+      // horizontal miss from the finger: a card in the finger's column wins unless it is >200px further from the line
+      const fxa = this.fx == null ? null : r.left + this.fx;
+      const dx = fxa == null ? 0 : fxa < b.left ? b.left - fxa : fxa > b.right ? fxa - b.right : 0;
+      const sc2 = d * 1000 + (dx > 0 ? 200000 + dx * 1000 : 0) + Math.abs((b.top + b.bottom) / 2 - fy);
+      if (sc2 < bs) { bs = sc2; best = el; }
+      if (el.getAttribute("data-k") === this.state.fk) { cur = el; cd = dx > 0 ? Infinity : d; }
+    });
+    // hysteresis: keep the current card while the line is still within 16px of it (parallax moves cards a little)
+    if (cur && best !== cur && cd < 16) best = cur;
+    if (!best) { if (fyl !== this.state.fy) this.setState({ fy: fyl }); return; }
+    const k = best.getAttribute("data-k"), ga = best.getAttribute("data-g"), z = +best.getAttribute("data-z");
+    if (this.ctl() === "ring") { if (ga !== this.state.ga || fyl !== this.state.fy) this.setState({ ga, fy: fyl }); return; }
+    if (k !== this.state.fk || ga !== this.state.ga) {
+      // card centre in its group's own (untransformed) coordinates
+      const gp = best.offsetParent || best, to = { x: best.offsetLeft + best.offsetWidth / 2, y: best.offsetTop + best.offsetHeight / 2, w: gp.offsetWidth || 350, h: gp.offsetHeight || 600 };
+      this.setState(ga !== this.state.ga ? { fk: k, ga, zf: z, fy: fyl, to, ao: to } : { fk: k, ga, zf: z, fy: fyl, to });
+      this.aim(ga, z);
+    } else if (fyl !== this.state.fy) this.setState({ fy: fyl });
+  }
+  renderVals() {
+    const s = this.state, ring = this.ctl() === "ring", hunt = s.hunting && !ring;
+    const base = POSTS.slice(3), list = base.filter(p => s.f === "all" || p.tag === s.f);
+    const yrs = [];
+    list.forEach(p => { let g = yrs[yrs.length - 1]; if (!g || g.year !== p.year) { g = { year: p.year, items: [] }; yrs.push(g); } g.items.push(p); });
+    const Ns = { hero: 3 }; yrs.forEach(g => { Ns[g.year] = g.items.length; });
+    const Na = Ns[s.ga] || 1, den = Math.max(1, Na - 1);
+    const zf = ring ? Math.round(s.ring / 100 * den) : Math.min(s.zf, den);
+    // focus breathing: the active group scales about the focused card, 1 + B·(1 − plane/den)
+    const B = (this.props.breathing ?? 1.4) / 100;
+    const zv = ring ? zf : (s.av[s.ga] ?? s.tg[s.ga] ?? zf);
+    const bo = `${s.ao.x.toFixed(1)}px ${s.ao.y.toFixed(1)}px`;
+    // parallax (ported from PC hover): the focused card plays the cursor; nearer planes shift more, farther planes shrink
+    const PX = (this.props.parallax ?? true) ? 1 : 0, cl = v => Math.max(-1, Math.min(1, v));
+    const mx = cl(s.ao.x / s.ao.w * 2 - 1), my = cl(s.ao.y / s.ao.h * 2 - 1);
+    const card = (p, k, g, z, N, u, extra) => {
+      let flt, op, on, tr = "none";
+      if (g !== s.ga) { flt = `blur(${hunt ? 2.6 : 1.8}px)`; op = 0.78; on = false; }
+      else {
+        const dz = Math.abs(z - zv);
+        flt = `blur(${(g === "hero" ? dz * MAXB * 0.53 : blurAt(dz, N)).toFixed(2)}px)`;
+        op = (1 - 0.3 * Math.min(1, dz / Math.max(1, N - 1))).toFixed(2);
+        on = false;
+        if (g === "hero") { const kk = (3 - z) * 6 * PX; tr = `translate(${(-mx * kk).toFixed(1)}px, ${(-my * kk * 0.6).toFixed(1)}px)`; }
+        else { const t = z / Math.max(1, N - 1), kp = (6 + 14 * (1 - t)) * PX; tr = `translate(${(-mx * kp).toFixed(1)}px, ${(-my * kp * 0.5).toFixed(1)}px) scale(${(1 - 0.06 * t * PX).toFixed(3)})`; }
+      }
+      return { k, g, z, flt, op, on, tr, title: p.title, date: p.date, tag: TAGS[p.tag], thumb: p.img,
+        open: e => { if (e && e.preventDefault) e.preventDefault(); clearTimeout(this._tt); this.setState({ toast: p.title }); this._tt = setTimeout(() => this.setState({ toast: null }), 1600); },
+        ...extra };
+    };
+    const main = card(POSTS[0], "h0", "hero", 0, 3, 0), side = [card(POSTS[1], "h1", "hero", 1, 3, -0.8), card(POSTS[2], "h2", "hero", 2, 3, 0.8)];
+    const groups = yrs.map(g => {
+      const N = g.items.length, st = stepFor(N);
+      const cols = [{ h: 0, items: [] }, { h: 0, items: [] }];
+      g.items.forEach((p, j) => {
+        const z = (j * st) % N, ar = ARS[(p.i * 7) % ARS.length], [aw, ah] = ar.split("/").map(Number);
+        const ci = cols[0].h <= cols[1].h ? 0 : 1;
+        cols[ci].items.push(card(p, "p" + p.i, g.year, z, N, ci ? 1 : -1, { ar }));
+        cols[ci].h += ah / aw + 0.35;
+      });
+      return { year: g.year, n: `${pad2(N)} entries`, cols, br: g.year === s.ga ? `scale(${(1 + B * (1 - zv / den)).toFixed(4)})` : "none", bo, col: g.year === s.ga ? "#1c1b19" : "#5f5b55" };
+    });
+    const tabs = ["all", "T", "G", "N"].map(k => {
+      const on = s.f === k, n = k === "all" ? base.length : base.filter(p => p.tag === k).length;
+      return { label: k === "all" ? "All" : TAGS[k], n: pad2(n), col: on ? "#1c1b19" : "#5f5b55", bd: on ? "#1c1b19" : "transparent",
+        go: () => this.setState({ f: k }, () => requestAnimationFrame(() => this.pick())) };
+    });
+    const mag = 1 + B * (1 - zv / den);
+    const label = s.ga === "hero" ? "Latest" : s.ga;
+    const readout = hunt ? `${this.mode()} · focusing…` : `${ring ? "MF" : this.mode()} · ${label} · ${distAt(zv / den)} · ${pad2(zf + 1)}/${pad2(Na)} · ×${mag.toFixed(3)}`;
+    return {
+      scRef: this.scRef, heroBr: s.ga === "hero" ? `scale(${mag.toFixed(4)})` : "none", heroBo: bo,
+      vigOp: (this.props.vignette ?? true) ? 1 : 0,
+      onScroll: this.onScroll, main, side, tabs, groups, readout,
+      lampBg: hunt ? "transparent" : "#1c1b19",
+      guide: (this.props.guide ?? true) && !ring, lineTop: s.fy + "px",
+      afX: (s.afx ?? 195) + "px", afOp: 0, rootRef: el => { this.root = el; }, afRef: el => { this.afEl = el; }, afLRef: el => { this.afLEl = el; }, afDist: distAt(zv / den), onMouse: this.onMouse,
+      tStart: this.tStart, tMove: this.tMove, gEnd: this.gEnd, pDown: this.pDown, pMove: this.pMove, pUp: this.pUp, clickCap: this.clickCap, onWheel: this.onWheel,
+      ring, ringVal: s.ring, ringDist: distAt(zf / den),
+      onRing: e => this.setState({ ring: +e.target.value }),
+      pillBottom: ring ? "112px" : "24px", footPad: ring ? "150px" : "80px",
+      toastOn: !!s.toast, toast: s.toast || ""
+    };
+  }
+}
+</script>
+</body>
+</html>
