@@ -1771,6 +1771,9 @@
         }
         jx.groups.forEach(g => {
           const N = g.N = g.items.length, st = JF.stepFor(N);
+          // フィルタで件数が減った年に、前のピント面が残らないようにする
+          if (jx.tg[g.key] != null) jx.tg[g.key] = Math.min(jx.tg[g.key], N - 1);
+          if (jZv[g.key] != null) jZv[g.key] = Math.min(jZv[g.key], N - 1);
           g.el = document.createElement('div');
           g.el.className = 'j-year';
           g.el.innerHTML = '<div class="j-year-head"><span class="j-year-num"></span><span class="j-year-rule"></span><span class="j-year-n"></span></div><div class="j-cols is-masonry"></div>';
@@ -2011,12 +2014,27 @@
       if (jHero || jField) {
         viewJournal.addEventListener('touchstart', e => {
           const t = e.touches[0];
-          if (!t || e.touches.length > 1) return;
-          jSwipe = { x0: t.clientX, c0: jCol, shift: 0 };
           jSwiped = false;
+          // フィルタのタブ列は横スクロールなので列切替にしない。2 本指（ピンチ）も対象外
+          if (!t || e.touches.length > 1 || e.target.closest('.j-tabs')) return;
+          jSwipe = { x0: t.clientX, c0: jCol, shift: 0 };
           jBr.holding = true;
+          jBr.kbd = null;
           jBr.from = { x: t.clientX, y: t.clientY };
           jBr.fromT = jNow();
+          // touchmove / touchend はタッチした要素に届く。石垣の組み直し（回転・リサイズ）で要素が
+          // viewJournal から外れても取りこぼさないよう、その要素で直接受ける
+          const el = e.target;
+          const end = ev => {
+            if (ev.touches.length) return;
+            el.removeEventListener('touchmove', onTouchMove);
+            el.removeEventListener('touchend', end);
+            el.removeEventListener('touchcancel', end);
+            touchEnd(ev);
+          };
+          el.addEventListener('touchmove', onTouchMove, { passive: true });
+          el.addEventListener('touchend', end, { passive: true });
+          el.addEventListener('touchcancel', end, { passive: true });
           touchNote();
         }, { passive: true });
         const swipeTo = x => {
@@ -2025,14 +2043,13 @@
           jBr.lean = reduceMotion.matches ? 0 : r.lean; // しきい値までは枠が指に引かれて傾く
           if (r.col !== jCol) { jCol = r.col; jSwiped = true; pickTouch(); }
         };
-        viewJournal.addEventListener('touchmove', e => {
+        function onTouchMove(e) {
           const t = e.touches[0];
           if (!jSwipe || !t) return;
           swipeTo(t.clientX);
           touchNote();
-        }, { passive: true });
-        const touchEnd = e => {
-          if (e.touches.length) return;
+        }
+        function touchEnd(e) {
           // Chrome はタップ判定の遊び（約 15px）の内側では touchmove を送らないので、離した位置でも判定する
           const t = e.changedTouches && e.changedTouches[0];
           if (jSwipe && t && e.type === 'touchend') swipeTo(t.clientX);
@@ -2040,9 +2057,7 @@
           jBr.lean = 0;
           jSwipe = null;
           touchNote();
-        };
-        viewJournal.addEventListener('touchend', touchEnd, { passive: true });
-        viewJournal.addEventListener('touchcancel', touchEnd, { passive: true });
+        }
         // 列を切り替えた指の操作ではリンクを開かない（動かさないタップはそのまま）
         viewJournal.addEventListener('click', e => {
           if (jSwiped) { e.preventDefault(); e.stopPropagation(); }
@@ -2084,7 +2099,7 @@
         afPt.style.transform = `translate(${(jPtr.x - 2).toFixed(1)}px, ${(jPtr.y - 2).toFixed(1)}px)`;
         afPt.style.opacity = t.dot ? jBr.a.toFixed(3) : 0;
         // キーボードで選んだカード：ブラケットが出ている間はフォーカスリングを消す
-        const on = jBr.kbd && jBr.a >= .03 ? jBr.kbd : null;
+        const on = jBr.kbd && jBr.kbd === jFocus.card && jBr.a >= .03 ? jBr.kbd : null;
         if (on !== jBr.on) {
           if (jBr.on) jBr.on.classList.remove('af-on');
           if (on) on.classList.add('af-on');
@@ -2163,7 +2178,7 @@
       window.addEventListener('scroll', () => {
         if (!jActive) return;
         if (jInput() === 'mouse') { if (jPtr.in && !jBr.kbd) { jPtr.dirty = true; touchNote(); } }
-        else { schedulePick(); touchNote(); }
+        else { if (!jBr.kbd) schedulePick(); touchNote(); }
       }, { passive: true });
 
       // キーボード：:focus-visible のカードにブラケットを付け、そこにピントを合わせる
@@ -2172,6 +2187,9 @@
         if (!card || !card.matches(':focus-visible')) return;
         jBr.kbd = card;
         jFocus.card = card; jFocus.group = card._jg;
+        // タッチ方式：選択中の列もそのカードの列にそろえる（次のスクロールで別の列に飛ばない）
+        const colEl = card.closest('.j-col');
+        if (colEl) jCol = [...colEl.parentNode.children].indexOf(colEl);
         jOnInput(card);
         touchNote();
       });
