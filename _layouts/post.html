@@ -15,15 +15,13 @@
   <meta name="description" content="{{ post_lead | escape }}">
   {%- endif %}
   <script>
-    // 描画前にテーマと Depth of field を <html> へ適用（一覧と localStorage を共有）
+    // 描画前にテーマを <html> へ適用（一覧と localStorage を共有）
     (function () {
-      var t = 'light', d = 'on';
+      var t = 'light';
       try {
         if (localStorage.getItem('theme') === 'dark') t = 'dark';
-        if (localStorage.getItem('journal-dof') === 'off') d = 'off';
       } catch (e) {}
       document.documentElement.setAttribute('data-theme', t);
-      document.documentElement.setAttribute('data-dof', d);
       document.documentElement.style.colorScheme = t;
     })();
   </script>
@@ -464,10 +462,6 @@
       opacity: 0;
     }
 
-    html[data-dof="off"] .scene {
-      filter: none;
-    }
-
     html.has-scenes .post-body h1:not(.post-title),
     html.has-scenes .post-body h2 {
       margin: 0 0 .9em;
@@ -673,11 +667,6 @@
       transform: translate(-3%, 4%) scale(1.05);
       filter: blur(10px);
       z-index: 6;
-    }
-
-    /* Depth of field Off：ボケだけ消す（opacity・transform は同じ） */
-    html[data-dof="off"] .stage-photo {
-      filter: none;
     }
 
     /* スクラバー（写真の下の線）：ホバー／なぞると写真だけ先に見られる */

@@ -779,34 +779,6 @@
       font-size: 10px;
     }
 
-    .j-dof {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      padding-bottom: 6px;
-    }
-
-    .j-dof .j-toolbar-label {
-      margin-right: 10px;
-    }
-
-    .j-dof button {
-      min-height: 32px;
-      padding: 0 14px;
-      background: transparent;
-      border: 1px solid var(--line);
-      cursor: pointer;
-      font-size: 11px;
-      letter-spacing: .08em;
-      color: var(--ink);
-      transition: background .25s, color .25s;
-    }
-
-    .j-dof button.is-on {
-      background: var(--ink);
-      color: var(--bg);
-    }
-
     .j-year {
       display: flex;
       flex-direction: column;
@@ -1061,7 +1033,7 @@
         {% assign jcover = post.cover | default: post.image | relative_url %}
         {% assign jthumb = post.thumb | relative_url | default: jcover %}
         {% if forloop.first %}
-      <a class="j-hero-card j-main" href="{{ post.url | relative_url }}">
+      <a class="j-hero-card j-main" data-card href="{{ post.url | relative_url }}">
         {% if jcover %}<img src="{{ jcover }}" alt="{{ post.title | escape }}" decoding="async">{% endif %}
         <span class="j-main-text">
           <span class="j-main-meta">Latest{% if jlabel != '' %} — {{ jlabel }}{% endif %} — {{ post.date | date: "%Y.%m.%d" }}</span>
@@ -1070,7 +1042,7 @@
       </a>
       {% if jposts.size > 1 %}<div class="j-side">{% endif %}
         {% else %}
-        <a class="j-hero-card" href="{{ post.url | relative_url }}">
+        <a class="j-hero-card" data-card href="{{ post.url | relative_url }}">
           {% if jthumb %}<img src="{{ jthumb }}" alt="{{ post.title | escape }}" decoding="async">{% endif %}
           <span class="j-meta">{{ post.date | date: "%Y.%m.%d" }}{% if jlabel != '' %} · {{ jlabel }}{% endif %}</span>
           <span class="j-side-title">{{ post.title | escape }}</span>
@@ -1095,11 +1067,6 @@
           <button type="button" class="j-tab" data-filter="gear"><span>Gear</span><span class="j-tab-n"></span></button>
           <button type="button" class="j-tab" data-filter="news"><span>News</span><span class="j-tab-n"></span></button>
         </div>
-        <div class="j-dof">
-          <span class="j-toolbar-label">Depth of field</span>
-          <button type="button" data-dof="off">Off</button>
-          <button type="button" data-dof="on" class="is-on">On</button>
-        </div>
       </div>
       <div id="j-field">
         {% assign jyear = '' %}
@@ -1116,7 +1083,7 @@
           {% case jc %}{% when 'travel', 'gear', 'news' %}{% assign jlabel = jc | capitalize %}{% else %}{% assign jc = '' %}{% assign jlabel = '' %}{% endcase %}
           {% assign jcover = post.cover | default: post.image | relative_url %}
           {% assign jthumb = post.thumb | relative_url | default: jcover %}
-            <a class="j-card" href="{{ post.url | relative_url }}" data-year="{{ y }}" data-category="{{ jc }}" data-index="{{ forloop.index0 | plus: 3 }}">
+            <a class="j-card" data-card href="{{ post.url | relative_url }}" data-year="{{ y }}" data-category="{{ jc }}" data-index="{{ forloop.index0 | plus: 3 }}">
               <img src="{{ jthumb }}" alt="{{ post.title | escape }}" loading="lazy" decoding="async">
               <span class="j-meta">{{ post.date | date: "%Y.%m.%d" }}{% if jlabel != '' %} · {{ jlabel }}{% endif %}</span>
               <span class="j-card-title">{{ post.title | escape }}</span>
@@ -1126,6 +1093,10 @@
       </div>
     </section>
     {% endif %}
+
+    <footer class="site-footer j-footer">
+      <span>© Hal Sakaguchi</span><span>Journal</span>
+    </footer>
   </main>
 
   <!-- About -->
@@ -1151,6 +1122,7 @@
     <button type="button" class="lb-close" id="lb-close" aria-label="閉じる">×</button>
   </div>
 
+  <script src="{{ '/assets/js/journal-focus.js' | relative_url }}"></script>
   <script id="gallery-data" type="application/json">{{ site.data.gallery | jsonify | replace: '</', '<\/' }}</script>
 
   <script>
@@ -1519,29 +1491,13 @@
       lightbox.addEventListener('touchend', () => setTilt(0, 0));
 
       // ---------- Journal「被写界深度」 ----------
-      const J_ARS = ['4/5', '3/2', '1/1', '3/4', '4/3', '2/3'];
-      const J_MAXB = 4;
+      const JF = window.JournalFocus;
       const viewJournal = $('view-journal');
       const jHero = $('j-hero'), jField = $('j-field'), jReadout = $('j-readout');
       const jHeroCards = jHero ? [...jHero.querySelectorAll('.j-hero-card')] : [];
       const jCards = jField ? [...jField.querySelectorAll('.j-card')] : [];
       const jTabs = [...document.querySelectorAll('.j-tab')];
-      const jDofBtns = [...document.querySelectorAll('[data-dof]')];
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-      const canHover = window.matchMedia('(hover: hover)'); // タッチ端末ではピント送りできないのでボケをかけない
-      const gcd = (a, b) => (b ? gcd(b, a % b) : a);
-      // 奥行き面の刻み：N と互いに素にして、隣り合うカードが離れた面に来るようにする
-      const stepFor = N => {
-        if (N < 3) return 1;
-        let st = Math.max(2, Math.round(N * .38));
-        while (gcd(st, N) !== 1) st++;
-        return st;
-      };
-      const distAt = t => {
-        const m = .8 * Math.pow(15, t);
-        return m < 10 ? m.toFixed(1) + ' m' : Math.round(m) + ' m';
-      };
-      const blurAt = (dz, N) => (dz <= .001 ? 0 : J_MAXB * (.2 * Math.min(1, dz) + .8 * Math.max(0, dz - 1) / Math.max(1, N - 2)));
       const isMouse = e => e.pointerType === 'mouse';
       const rel = (e, el) => {
         const r = el.getBoundingClientRect();
@@ -1549,21 +1505,20 @@
       };
 
       const jx = {
-        dof: 'on', filter: 'all',
+        filter: 'all',
         hh: null, hm: null,              // ヒーロー：ホバー index とマウス位置
         ay: null, tg: {}, bm: { x: .5, y: .5 }, // Archive：アクティブ年・年ごとのピント面・年内マウス位置
         nc: 0, groups: []
       };
-      try { jx.dof = localStorage.getItem('journal-dof') === 'off' ? 'off' : 'on'; } catch (e) {} // 旧値 lens は on 扱い
 
       function renderJHero() {
-        const px = reduceMotion.matches ? 0 : 1, dof = jx.dof !== 'off' && canHover.matches;
+        const px = reduceMotion.matches ? 0 : 1;
         const hf = jx.hh != null ? jx.hh : 0, hm = jx.hm || { x: .5, y: .5 };
         jHeroCards.forEach((el, idx) => {
-          const k = (3 - idx) * 6 * px, dz = Math.abs(idx - hf);
-          el.style.filter = `blur(${dof ? (dz * J_MAXB * .53).toFixed(1) : 0}px)`;
-          el.style.opacity = dof && idx !== hf ? .75 : 1;
-          el.style.transform = `translate(${(-(hm.x * 2 - 1) * k).toFixed(1)}px, ${(-(hm.y * 2 - 1) * k * .6).toFixed(1)}px)`;
+          const dz = Math.abs(idx - hf), sh = JF.heroShift(idx, hm.x * 2 - 1, hm.y * 2 - 1, px);
+          el.style.filter = `blur(${JF.heroBlur(dz).toFixed(1)}px)`;
+          el.style.opacity = JF.heroOpacity(dz, 'mouse');
+          el.style.transform = `translate(${sh.x.toFixed(1)}px, ${sh.y.toFixed(1)}px)`;
         });
       }
 
@@ -1585,7 +1540,7 @@
           jField.appendChild(empty);
         }
         jx.groups.forEach(g => {
-          const N = g.items.length, st = stepFor(N);
+          const N = g.items.length, st = JF.stepFor(N);
           g.el = document.createElement('div');
           g.el.className = 'j-year';
           g.el.innerHTML = '<div class="j-year-head"><span class="j-year-num"></span><span class="j-year-rule"></span><span class="j-year-n"></span></div><div class="j-cols is-masonry"></div>';
@@ -1599,7 +1554,7 @@
             return { el, h: 0 };
           });
           g.items.forEach((c, j) => {
-            const ar = J_ARS[(+c.dataset.index * 7) % J_ARS.length], [aw, ah] = ar.split('/').map(Number);
+            const ar = JF.ARS[(+c.dataset.index * 7) % JF.ARS.length], [aw, ah] = ar.split('/').map(Number);
             c._jz = (j * st) % N;
             c.querySelector('img').style.aspectRatio = ar;
             const col = cols.reduce((a, b) => (b.h < a.h ? b : a));
@@ -1630,12 +1585,12 @@
 
       function renderArchive() {
         if (!jField) return;
-        const px = reduceMotion.matches ? 0 : 1, dof = jx.dof !== 'off';
+        const px = reduceMotion.matches ? 0 : 1;
         const mx = jx.bm.x * 2 - 1, my = jx.bm.y * 2 - 1;
-        let readout = dof ? 'focus —' : 'depth of field off';
+        let readout = 'focus —';
         jx.groups.forEach(g => {
           const N = g.items.length, act = jx.ay === g.year, den = Math.max(1, N - 1), zf = jx.tg[g.year] || 0;
-          if (act && dof) readout = `${g.year} · focus ${distAt(zf / den)} · plane ${pad(zf + 1)} / ${pad(N)}`;
+          if (act) readout = `${g.year} · focus ${JF.distAt(zf / den)} · plane ${pad(zf + 1)} / ${pad(N)}`;
           g.el.classList.toggle('is-dim', jx.ay != null && !act);
           g.items.forEach(c => {
             if (!act) {
@@ -1644,10 +1599,10 @@
               c.style.transform = 'none';
               return;
             }
-            const z = c._jz, dz = Math.abs(z - zf), t = z / den, k = (6 + 14 * (1 - t)) * px;
-            c.style.filter = `blur(${(dof ? blurAt(dz, N) : 0).toFixed(2)}px)`;
-            c.style.opacity = dof ? (1 - .3 * Math.min(1, dz / den)).toFixed(2) : 1;
-            c.style.transform = `translate(${(-mx * k).toFixed(1)}px, ${(-my * k * .5).toFixed(1)}px) scale(${(1 - .06 * t * px).toFixed(3)})`;
+            const z = c._jz, dz = Math.abs(z - zf), sh = JF.archiveShift(z / den, mx, my, px);
+            c.style.filter = `blur(${JF.blurAt(dz, N).toFixed(2)}px)`;
+            c.style.opacity = JF.archiveOpacity(dz, den);
+            c.style.transform = `translate(${sh.x.toFixed(1)}px, ${sh.y.toFixed(1)}px) scale(${sh.s.toFixed(3)})`;
           });
         });
         jReadout.textContent = readout;
@@ -1655,7 +1610,6 @@
 
       function renderJControls() {
         jTabs.forEach(b => b.classList.toggle('is-on', b.dataset.filter === jx.filter));
-        jDofBtns.forEach(b => b.classList.toggle('is-on', b.dataset.dof === jx.dof));
       }
 
       if (jHero) {
@@ -1690,13 +1644,6 @@
             buildArchive();
           });
         });
-        jDofBtns.forEach(b => b.addEventListener('click', () => {
-          jx.dof = b.dataset.dof;
-          try { localStorage.setItem('journal-dof', jx.dof); } catch (e) {}
-          renderJControls();
-          renderJHero();
-          renderArchive();
-        }));
         jCards.forEach(c => c.addEventListener('pointerenter', e => {
           if (!isMouse(e)) return;
           jx.ay = c.dataset.year;
@@ -1713,7 +1660,6 @@
         renderJControls();
       }
       reduceMotion.addEventListener('change', () => { renderJHero(); renderArchive(); });
-      canHover.addEventListener('change', renderJHero);
 
       // ---------- About ----------
       const about = $('about');
