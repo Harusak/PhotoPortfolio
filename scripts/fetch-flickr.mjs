@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-// Flickr → _data/gallery.json   Node 20+ / 依存なし
+// Flickr → _data/gallery.json, _data/flickr_photos.json   Node 20.12+ / 依存なし
 // env: FLICKR_API_KEY, FLICKR_USER_ID(NSID)   config: flickr.config.json
 // ローカルではリポジトリ直下の .env からも読む（既に設定済みの環境変数が優先）
 // 失敗時は既存の _data/gallery.json を残してビルドを続行する
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
+import { loadEnv, call, paged, loadConfig } from "./lib/flickr-api.mjs";
+import { resolvePostPhotos, CACHE_PATH } from "./lib/post-photos.mjs";
+import { DEFAULT_POST_SIZES } from "./lib/flickr-links.mjs";
 
-try { process.loadEnvFile(".env"); } catch {} // .env が無い（Actions など）ときは何もしない
-
-const KEY = process.env.FLICKR_API_KEY;
-const USER = process.env.FLICKR_USER_ID;
+const { key: KEY, user: USER } = loadEnv();
 const OUT = "_data/gallery.json";
-const cfg = JSON.parse(await readFile("flickr.config.json", "utf8").catch(() => "{}"));
+const cfg = await loadConfig();
 const FEATURED_TAG = String(cfg.featuredTag || "featured").toLowerCase();
 const ALBUM_MARKER = String(cfg.albumMarker || "#featured");
 const MAX_ALBUMS = +cfg.maxAlbums || 5;
@@ -18,32 +18,13 @@ const hasMarker = s => text(s.description).toLowerCase().includes(ALBUM_MARKER.t
 const stripMarker = d => d.split(new RegExp(ALBUM_MARKER.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig")).join("").trim();
 const EXTRAS = "url_c,url_l,url_h,url_k,date_taken,description,tags,media";
 
-async function call(method, params = {}) {
-  const u = new URL("https://api.flickr.com/services/rest/");
-  u.search = new URLSearchParams({ method, api_key: KEY, format: "json", nojsoncallback: "1", ...params });
-  const r = await fetch(u);
-  if (!r.ok) throw new Error(`${method}: HTTP ${r.status}`);
-  const j = await r.json();
-  if (j.stat !== "ok") throw new Error(`${method}: ${j.code} ${j.message}`);
-  return j;
-}
 const text = v => (v && typeof v === "object" ? v._content : v) || "";
 const size = (p, keys) => {
   for (const k of keys) if (p[`url_${k}`]) return { src: p[`url_${k}`], w: +p[`width_${k}`], h: +p[`height_${k}`] };
   return null;
 };
 
-async function paged(method, params, key) {
-  const out = [];
-  for (let page = 1, pages = 1; page <= pages; page++) {
-    const j = await call(method, { ...params, per_page: "500", page: String(page) });
-    out.push(...j[key][key === "photosets" ? "photoset" : "photo"]);
-    pages = +j[key].pages || 1;
-  }
-  return out;
-}
-
-async function main() {
+async function gallery() {
   if (!KEY || !USER) throw new Error("FLICKR_API_KEY / FLICKR_USER_ID が未設定");
   const sets = await paged("flickr.photosets.getList", { user_id: USER }, "photosets");
   // 説明文に #featured を含むアルバムを Flickr の並び順で最大 5 件。0 件なら先頭 5 件
@@ -82,4 +63,17 @@ async function main() {
   console.log(`wrote ${OUT}: ${albums.length} albums, ${data.featured.length} featured`);
 }
 
-main().catch(e => console.warn(`[fetch-flickr] ${e.message} — 既存の ${OUT} を使用します`));
+async function posts() {
+  if (!KEY) throw new Error("FLICKR_API_KEY が未設定");
+  const { cache, failed, unresolved, fetchedCount } = await resolvePostPhotos({
+    refresh: process.argv.includes("--refresh"),
+    postSizes: { ...DEFAULT_POST_SIZES, ...cfg.postSizes }
+  });
+  console.log(`wrote ${CACHE_PATH}: ${Object.keys(cache.photos).length} photos (${fetchedCount} new, ${failed.length} failed)`);
+  for (const f of failed) console.warn(`[fetch-flickr] 取得失敗: ${f.id} (${f.error})`);
+  for (const u of unresolved) console.warn(`[fetch-flickr] 未解決: ${u.url}（${u.post}）`);
+}
+
+// gallery と記事写真は独立に実行（片方が失敗してももう片方は動く）
+await gallery().catch(e => console.warn(`[fetch-flickr] ${e.message} — 既存の ${OUT} を使用します`));
+await posts().catch(e => console.warn(`[fetch-flickr] ${e.message} — 既存の ${CACHE_PATH} を使用します`));
