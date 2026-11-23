@@ -26,9 +26,9 @@ category: travel
 # 大サイズ・中サイズ・View on Flickr のリンクは fetch-flickr.mjs が調べて自動で決まる
 # （画像 URL（live.staticflickr.com）や /assets/… も書ける。fetch 前の写真ページ URL は image にフォールバック）
 cover: "https://www.flickr.com/photos/XXXXXXXX@N00/XXXXXXXXXXX/"
-thumb: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_c.jpg"        # 任意。通常は不要（自動で決まる）。一覧カード用の中サイズを変えたいときだけ
-cover_thumb: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_c.jpg"  # 任意。通常は不要（自動で決まる）。記事ページのモバイル用
-cover_page: "https://www.flickr.com/photos/XXXXXXXX@N00/XXXXXXXXXXX/"           # 任意。通常は不要（自動で決まる）。ポップアップの View on Flickr
+# thumb: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_c.jpg"        # 任意。通常は不要（自動で決まる）。一覧カード用の中サイズを変えたいときだけ
+# cover_thumb: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_c.jpg"  # 任意。通常は不要（自動で決まる）。記事ページのモバイル用
+# cover_page: "https://www.flickr.com/photos/XXXXXXXX@N00/XXXXXXXXXXX/"           # 任意。通常は不要（自動で決まる）。ポップアップの View on Flickr
 cover_caption: 西門路から一本入った路地。                                        # 任意。ステージとポップアップのキャプション
 
 # リード（タイトル下の一文）。任意。無ければ description → 本文の冒頭の順で使う

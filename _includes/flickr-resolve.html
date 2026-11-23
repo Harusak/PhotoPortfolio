@@ -22,10 +22,10 @@
   {%- if fr_id -%}{%- assign fr_entry = site.data.flickr_photos.photos[fr_id] -%}{%- endif -%}
   {%- if fr_entry -%}
     {%- assign fr_kind = "flickr" -%}
-    {%- if fr_is_page -%}{%- assign fr_full = fr_entry.full -%}{%- else -%}{%- assign fr_full = fr_url -%}{%- endif -%}
-    {%- assign fr_thumb = fr_entry.thumb -%}
-    {%- assign fr_page = fr_entry.page -%}
-    {%- assign fr_title = fr_entry.title -%}
+    {%- if fr_is_page -%}{%- assign fr_full = fr_entry.full | default: "" -%}{%- else -%}{%- assign fr_full = fr_url -%}{%- endif -%}
+    {%- assign fr_thumb = fr_entry.thumb | default: "" -%}
+    {%- assign fr_page = fr_entry.page | default: "" -%}
+    {%- assign fr_title = fr_entry.title | default: "" -%}
   {%- elsif fr_is_page -%}
     {%- assign fr_kind = "missing" -%}
     {%- assign fr_page = fr_url -%}

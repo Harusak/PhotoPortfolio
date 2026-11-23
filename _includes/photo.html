@@ -12,7 +12,8 @@
 {%- else -%}
 {%- assign photo_src = fr_full -%}
 {%- assign photo_thumb = fr_thumb -%}
-{%- if include.thumb -%}{%- assign photo_thumb = include.thumb | relative_url -%}{%- endif -%}
+{%- if include.thumb and include.thumb != "" -%}{%- assign photo_thumb = include.thumb | relative_url -%}{%- endif -%}
+{%- comment -%} 空の thumb="" / page="" は指定なしとして扱う（default は "" も空とみなす） {%- endcomment -%}
 {%- assign photo_page = include.page | default: fr_page -%}
 <figure class="post-photo" data-full="{{ photo_src | escape }}" data-thumb="{{ photo_thumb | escape }}" data-page="{{ photo_page | escape }}" data-caption="{{ include.caption | escape }}">
   <img src="{{ photo_thumb | escape }}" alt="{{ include.caption | escape }}" loading="lazy" decoding="async">
