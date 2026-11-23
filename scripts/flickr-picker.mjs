@@ -47,7 +47,7 @@ function readBody(req) {
     let size = 0; const chunks = [];
     req.on("data", c => {
       size += c.length;
-      if (size > MAX_BODY) { chunks.length = 0; return reject(Object.assign(new Error("too large"), { status: 413 })); } // 残りは読み捨てて 413 を返す
+      if (size > MAX_BODY) { chunks.length = 0; req.resume(); return reject(Object.assign(new Error("too large"), { status: 413 })); } // 残りは読み捨てて 413 を返す
       chunks.push(c);
     });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
@@ -60,6 +60,11 @@ const validItems = v => Array.isArray(v?.items) && v.items.every(i =>
 
 http.createServer(async (req, res) => {
   try {
+    // DNS リバインディング対策：Host が自分自身のときだけ受け付ける
+    if (![`127.0.0.1:${PORT}`, `localhost:${PORT}`].includes(req.headers.host)) {
+      req.resume();
+      return send(res, 403, { error: "forbidden host" });
+    }
     const u = new URL(req.url, "http://127.0.0.1");
     if (req.method === "GET" && STATIC[u.pathname]) {
       const [file, type] = STATIC[u.pathname];
@@ -74,6 +79,11 @@ http.createServer(async (req, res) => {
       catch (e) { return send(res, 502, { error: e.message }); }
     }
     if (req.method === "POST" && u.pathname === "/api/resolve") {
+      // 他サイトからの単純な POST（text/plain など）でキャッシュを書けないようにする
+      if (!String(req.headers["content-type"] || "").startsWith("application/json")) {
+        req.resume();
+        return send(res, 415, { error: "content-type must be application/json" });
+      }
       let data;
       try { data = JSON.parse(await readBody(req)); }
       catch (e) { return send(res, e.status || 400, { error: e.status === 413 ? "body too large" : "invalid JSON" }); }
