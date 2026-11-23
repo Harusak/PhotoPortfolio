@@ -1,5 +1,6 @@
 {
   "albumMarker": "#featured",
   "maxAlbums": 5,
-  "featuredTag": "featured"
+  "featuredTag": "featured",
+  "postSizes": { "full": ["3k", "k", "h", "b"], "thumb": ["c", "z", "b"] }
 }

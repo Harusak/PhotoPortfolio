@@ -6,8 +6,10 @@
 #      （slug は半角英数とハイフン。URL の末尾になる）
 #   2. 下の front matter を埋め、不要な任意項目は行ごと消す
 #   3. 本文を書き換える（書き方の例は本文側にある）
-#   4. bundle exec jekyll serve で確認 → http://127.0.0.1:4000/PhotoPortfolio/#/journal
-#   5. git add _posts/… でコミットする
+#   4. 新しい Flickr の写真を貼ったら node scripts/fetch-flickr.mjs を一度実行する（またはピッカーでコピーする）
+#      → _data/flickr_photos.json に画像 URL が入り、写真ページ URL が写真として表示される
+#   5. bundle exec jekyll serve で確認 → http://127.0.0.1:4000/PhotoPortfolio/#/journal
+#   6. git add _posts/… _data/flickr_photos.json でコミットする
 # ============================================================
 
 layout: post                       # 必須・変更しない
@@ -19,12 +21,14 @@ date: 2026-10-04                   # 必須。表示（2026.10.04）と一覧の
 # ※ URL にも入る（/travel/2026/10/04/slug.html）。公開後に変えるとリンクが切れる
 category: travel
 
-# カバー写真（記事ページのステージ 01、一覧のヒーロー）。Flickr の大サイズ（_k）を推奨
-# Flickr の写真ページ → ダウンロードアイコン → 「すべてのサイズを表示」→ 各サイズの画像 URL をコピー
-cover: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_k.jpg"
-thumb: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_c.jpg"        # 任意。一覧カード・モバイル用の中サイズ（_c）。無ければ cover
-cover_thumb: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_c.jpg"  # 任意。記事ページのモバイル用。_k の URL からは自動で作れないので指定推奨
-cover_page: "https://www.flickr.com/photo.gne?id=XXXXXXXXXXX"                   # 任意。ポップアップの View on Flickr。Flickr の URL なら省略しても自動で作る
+# カバー写真（記事ページのステージ 01、一覧のヒーロー）。Flickr の写真ページの URL を推奨
+# ブラウザで Flickr の写真ページを開き、アドレスバーの URL をそのままコピーする（/in/… が付いていてもよい）
+# 大サイズ・中サイズ・View on Flickr のリンクは fetch-flickr.mjs が調べて自動で決まる
+# （画像 URL（live.staticflickr.com）や /assets/… も書ける。fetch 前の写真ページ URL は image にフォールバック）
+cover: "https://www.flickr.com/photos/XXXXXXXX@N00/XXXXXXXXXXX/"
+# thumb: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_c.jpg"        # 任意。通常は不要（自動で決まる）。一覧カード用の中サイズを変えたいときだけ
+# cover_thumb: "https://live.staticflickr.com/65535/XXXXXXXXXXX_xxxxxxxxxx_c.jpg"  # 任意。通常は不要（自動で決まる）。記事ページのモバイル用
+# cover_page: "https://www.flickr.com/photos/XXXXXXXX@N00/XXXXXXXXXXX/"           # 任意。通常は不要（自動で決まる）。ポップアップの View on Flickr
 cover_caption: 西門路から一本入った路地。                                        # 任意。ステージとポップアップのキャプション
 
 # リード（タイトル下の一文）。任意。無ければ description → 本文の冒頭の順で使う
@@ -44,13 +48,14 @@ album:
 
 1 シーンの文章は、デスクトップで約 700 字、モバイルで約 260 字が目安（文章欄に収まる長さ）。超えても読めるが「長いシーン」になり、欄の中をスクロールして読み進める（左に進み具合の線が出る）。写真が続くと文章の無いシーンになる。
 
-{% include photo.html
-   src="https://live.staticflickr.com/65535/XXXXXXXXXXX_yyyyyyyyyy_k.jpg"
-   thumb="https://live.staticflickr.com/65535/XXXXXXXXXXX_zzzzzzzzzz_c.jpg"
-   page="https://www.flickr.com/photo.gne?id=XXXXXXXXXXX"
-   caption="神農街の手前、昼下がりの路地。" %}
+{% include photo.html flickr="https://www.flickr.com/photos/XXXXXXXX@N00/XXXXXXXXXXX/" caption="神農街の手前、昼下がりの路地。" %}
 
-上の include が写真の推奨の書き方。src は大サイズ（_k、ポップアップとデスクトップ用）、thumb は中サイズ（_c、モバイル用）、page は View on Flickr のリンク先（省略するとボタンが出ない）、caption はキャプション。include の前後には空行を入れる。
+上の include が写真の推奨の書き方。手順：
+
+1. Flickr の写真ページを開き、その URL をコピーして flickr="…" に貼る（caption はキャプション。Flickr のタイトルは自動では使わない）
+2. 新しい写真を貼ったら node scripts/fetch-flickr.mjs を一度実行する（またはピッカーでコピーする）。それから bundle exec jekyll serve で確認する
+
+大サイズ（ポップアップとデスクトップ用）、中サイズ（モバイル用）、View on Flickr のリンク先は自動で決まる。fetch 前の（データに無い）写真ページ URL は写真にならず、「Flickr で見る ↗」のリンクだけが出る。src="画像 URL"・thumb・page を直接書く従来の書き方も使え、明示した thumb / page は自動の値より優先される。include の前後には空行を入れる。
 
 ## 小見出しは ## で書く
 
@@ -58,7 +63,7 @@ album:
 
 ![廟の前で昼寝をする犬。](https://live.staticflickr.com/65535/XXXXXXXXXXX_yyyyyyyyyy_b.jpg)
 
-Markdown の画像記法でも写真になる。[ ] の中がキャプションになる。ただし、この形は段落に画像 1 枚だけを置いたときに限る。Flickr の _b や _c の URL なら、モバイル用の中サイズを自動で作る。_k の URL だと中サイズを作れずモバイルでも大サイズを読み込むので、通常は include を使うほうがよい。
+Markdown の画像記法でも写真になる。[ ] の中がキャプションになる。ただし、この形は段落に画像 1 枚だけを置いたときに限る。Markdown の画像記法では Flickr の写真ページ URL は使えない（画像の URL が必要）。Flickr の _b や _c の URL なら、モバイル用の中サイズを自動で作る。_k の URL だと中サイズを作れずモバイルでも大サイズを読み込むので、通常は include（flickr=）を使うほうがよい。
 
 ### 図・スクリーンショット（リポジトリ内の画像）
 

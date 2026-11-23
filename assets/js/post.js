@@ -79,11 +79,23 @@
   // ---------- 写真を集める ----------
   const stageCol = $('stage-col'), stage = $('stage'), body = $('post-body');
   const scenesEl = $('scenes');
+  // 記事が参照する Flickr 写真の URL → { thumb, page }（post.html が埋め込む。無い・壊れていれば {}）
+  let flickrMap = {};
+  try {
+    const el = $('post-flickr');
+    const m = el && JSON.parse(el.textContent);
+    if (m && typeof m === 'object') flickrMap = m;
+  } catch (err) {}
+  const mapped = src => (Object.prototype.hasOwnProperty.call(flickrMap, src) ? flickrMap[src] : null);
   const flickrPage = src => {
+    const e = mapped(src);
+    if (e && e.page) return e.page;
     const m = src.match(FLICKR);
     return m ? `https://www.flickr.com/photo.gne?id=${m[2]}` : '';
   };
   const flickrThumb = src => {
+    const e = mapped(src);
+    if (e && e.thumb) return e.thumb;
     const m = src.match(FLICKR);
     return m && SAME_SECRET.includes((m[3] || '').toLowerCase()) ? `${m[1]}_c.${m[4]}` : src;
   };
@@ -112,7 +124,8 @@
       photos.push({ full: d.full, thumb: d.thumb || d.full, page: d.page || '', caption: d.caption || '' });
     } else {
       const img = block.querySelector('img');
-      photos.push({ full: img.src, thumb: flickrThumb(img.src), page: flickrPage(img.src), caption: img.alt || '' });
+      const written = img.getAttribute('src') || img.src; // マップのキーは記事に書かれた URL
+      photos.push({ full: img.src, thumb: flickrThumb(written), page: flickrPage(written), caption: img.alt || '' });
     }
     block.remove(); // 写真はステージ側に出す
   });

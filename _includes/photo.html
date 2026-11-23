@@ -1,13 +1,24 @@
 {%- comment -%}
   本文中の写真。JS が有効なら、ここでシーンが区切られ（本文には番号だけが残る）、写真はステージ側に出る。
-  引数：src（大サイズ・必須）／thumb（中サイズ）／page（Flickr の写真ページ）／caption
+  引数：flickr（Flickr の写真ページ URL。推奨）／src（大サイズ。flickr が無いとき必須）／thumb（中サイズ）／page（Flickr の写真ページ）／caption
+  flickr / src は _data/flickr_photos.json で解決する（flickr-resolve.html）。明示した thumb / page はデータより優先
   src / thumb はリポジトリ内のパス（/assets/…）でもよい。relative_url で baseurl を付ける（http の URL はそのまま）
+  データに無い写真ページ URL は写真にせず、Flickr へのリンクだけを出す（fetch-flickr.mjs を実行すれば写真になる）
 {%- endcomment -%}
-{%- assign photo_src = include.src | relative_url -%}
-{%- assign photo_thumb = include.thumb | default: include.src | relative_url -%}
-<figure class="post-photo" data-full="{{ photo_src | escape }}" data-thumb="{{ photo_thumb | escape }}" data-page="{{ include.page | escape }}" data-caption="{{ include.caption | escape }}">
+{%- assign photo_url = include.flickr | default: include.src -%}
+{%- include flickr-resolve.html url=photo_url -%}
+{%- if fr_kind == "missing" -%}
+<p class="post-flickr-link"><a href="{{ fr_page | escape }}" target="_blank" rel="noopener">{{ include.caption | default: "Flickr で見る" | escape }} ↗</a></p>
+{%- else -%}
+{%- assign photo_src = fr_full -%}
+{%- assign photo_thumb = fr_thumb -%}
+{%- if include.thumb and include.thumb != "" -%}{%- assign photo_thumb = include.thumb | relative_url -%}{%- endif -%}
+{%- comment -%} 空の thumb="" / page="" は指定なしとして扱う（default は "" も空とみなす） {%- endcomment -%}
+{%- assign photo_page = include.page | default: fr_page -%}
+<figure class="post-photo" data-full="{{ photo_src | escape }}" data-thumb="{{ photo_thumb | escape }}" data-page="{{ photo_page | escape }}" data-caption="{{ include.caption | escape }}">
   <img src="{{ photo_thumb | escape }}" alt="{{ include.caption | escape }}" loading="lazy" decoding="async">
   {%- if include.caption %}
   <figcaption>{{ include.caption | escape }}</figcaption>
   {%- endif %}
 </figure>
+{%- endif -%}

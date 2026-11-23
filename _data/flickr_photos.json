@@ -1,0 +1,126 @@
+{
+  "generatedAt": "2026-11-23T00:56:58.868Z",
+  "photos": {
+    "53098018469": {
+      "page": "https://www.flickr.com/photos/194776399@N02/53098018469/",
+      "title": "B0001956-2",
+      "full": "https://live.staticflickr.com/65535/53098018469_10ada1a15c_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/53098018469_294a480b78_c.jpg",
+      "w": 3072,
+      "h": 2458
+    },
+    "55608378043": {
+      "page": "https://www.flickr.com/photos/194776399@N02/55608378043/",
+      "title": "DSC02305",
+      "full": "https://live.staticflickr.com/65535/55608378043_382b4136a0_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/55608378043_6ec6d156a7_c.jpg",
+      "w": 3072,
+      "h": 2052
+    },
+    "55608269631": {
+      "page": "https://www.flickr.com/photos/194776399@N02/55608269631/",
+      "title": "R0010641",
+      "full": "https://live.staticflickr.com/65535/55608269631_3101b9f4fe_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/55608269631_24b29872c3_c.jpg",
+      "w": 2304,
+      "h": 3072
+    },
+    "55608279226": {
+      "page": "https://www.flickr.com/photos/194776399@N02/55608279226/",
+      "title": "B0000275",
+      "full": "https://live.staticflickr.com/65535/55608279226_ff29204db2_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/55608279226_80b2f463c0_c.jpg",
+      "w": 3072,
+      "h": 2048
+    },
+    "54988849353": {
+      "page": "https://www.flickr.com/photos/194776399@N02/54988849353/",
+      "title": "Timeline 27_00086400",
+      "full": "https://live.staticflickr.com/65535/54988849353_9c6cf8d5a4_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/54988849353_84a15e6ed6_c.jpg",
+      "w": 3072,
+      "h": 1728
+    },
+    "53495022424": {
+      "page": "https://www.flickr.com/photos/194776399@N02/53495022424/",
+      "title": "img20240122_16400752",
+      "full": "https://live.staticflickr.com/65535/53495022424_d8c9ec1f68_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/53495022424_b205408f39_c.jpg",
+      "w": 3072,
+      "h": 2048
+    },
+    "55655753948": {
+      "page": "https://www.flickr.com/photos/194776399@N02/55655753948/",
+      "title": "Timeline 3_00086400",
+      "full": "https://live.staticflickr.com/65535/55655753948_e18dee666e_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/55655753948_5c822c9b38_c.jpg",
+      "w": 3072,
+      "h": 1728
+    },
+    "55654636627": {
+      "page": "https://www.flickr.com/photos/194776399@N02/55654636627/",
+      "title": "Timeline 2_00086400",
+      "full": "https://live.staticflickr.com/65535/55654636627_108fbe0561_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/55654636627_d2d0123b73_c.jpg",
+      "w": 3072,
+      "h": 1728
+    },
+    "55655820134": {
+      "page": "https://www.flickr.com/photos/194776399@N02/55655820134/",
+      "title": "Timeline 5_00086400",
+      "full": "https://live.staticflickr.com/65535/55655820134_9f7f8287e3_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/55655820134_e4bb21991e_c.jpg",
+      "w": 3072,
+      "h": 1728
+    },
+    "55656043690": {
+      "page": "https://www.flickr.com/photos/194776399@N02/55656043690/",
+      "title": "Timeline 12_00086400",
+      "full": "https://live.staticflickr.com/65535/55656043690_8ab74e953d_3k.jpg",
+      "thumb": "https://live.staticflickr.com/65535/55656043690_162d11d658_c.jpg",
+      "w": 3072,
+      "h": 1728
+    }
+  },
+  "urls": {
+    "https://live.staticflickr.com/65535/53098018469_eb8b162a71_k.jpg": "53098018469",
+    "https://live.staticflickr.com/65535/55608378043_af521b621f_4k.jpg": "55608378043",
+    "https://live.staticflickr.com/65535/55608269631_0dcce343db_4k.jpg": "55608269631",
+    "https://live.staticflickr.com/65535/55608279226_7530176306_4k.jpg": "55608279226",
+    "https://live.staticflickr.com/65535/54988849353_1a6675c4de_4k.jpg": "54988849353",
+    "https://live.staticflickr.com/65535/53495022424_d8c9ec1f68_3k.jpg": "53495022424",
+    "https://live.staticflickr.com/65535/55655753948_e18dee666e_3k.jpg": "55655753948",
+    "https://live.staticflickr.com/65535/55654636627_108fbe0561_3k.jpg": "55654636627",
+    "https://live.staticflickr.com/65535/55655820134_9f7f8287e3_3k.jpg": "55655820134",
+    "https://live.staticflickr.com/65535/55656043690_8ab74e953d_3k.jpg": "55656043690"
+  },
+  "posts": {
+    "_posts/2024-11-20-blogsample.md": [
+      "53098018469"
+    ],
+    "_posts/2024-11-21-khaomangai.md": [
+      "53098018469"
+    ],
+    "_posts/2026-10-23-perfectno28.md": [
+      "55608378043",
+      "55608269631",
+      "55608279226"
+    ],
+    "_posts/2026-10-24-original_kousatu2026.md": [
+      "54988849353"
+    ],
+    "_posts/2026-10-29-boku_ga_kangaeta_saikyou_lens_2026.md": [],
+    "_posts/2026-10-29-red_komodo_workflow2026.md": [],
+    "_posts/2026-11-06-i_need_grivmonochrome.md": [
+      "53495022424"
+    ],
+    "_posts/2026-11-14-redkomodo_film_digitize.md": [],
+    "_posts/2026-11-14-redkomodo_iiyo.md": [],
+    "_posts/2026-11-23-sigma_50_2.8_ex_dg_macro.md": [
+      "55655753948",
+      "55654636627",
+      "55655820134",
+      "55656043690"
+    ]
+  }
+}

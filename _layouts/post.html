@@ -5,8 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {%- assign post_cat = page.category | default: page.categories.first | downcase -%}
   {%- case post_cat -%}{%- when 'travel', 'gear', 'news' -%}{%- assign post_label = post_cat | capitalize -%}{%- else -%}{%- assign post_label = '' -%}{%- endcase -%}
-  {%- assign post_cover = page.cover | default: page.image | relative_url -%}
-  {%- assign post_cover_thumb = page.cover_thumb | relative_url -%}
+  {%- comment -%} cover：page.cover を解決し、無い・データに無い写真ページなら page.image。本文の include が fr_* を上書きするので post_* に移す。
+    cover_thumb はデータで解決できたときだけ埋める（それ以外は post.js が cover から決める） {%- endcomment -%}
+  {%- include flickr-resolve.html url=page.cover -%}
+  {%- if fr_kind == "" or fr_kind == "missing" -%}{%- include flickr-resolve.html url=page.image -%}{%- endif -%}
+  {%- assign post_cover = fr_full -%}
+  {%- if page.cover_thumb -%}{%- assign post_cover_thumb = page.cover_thumb | relative_url -%}{%- elsif fr_kind == "flickr" -%}{%- assign post_cover_thumb = fr_thumb -%}{%- else -%}{%- assign post_cover_thumb = "" -%}{%- endif -%}
+  {%- assign post_cover_page = page.cover_page | default: fr_page -%}
   {%- assign post_lead = page.lead | default: page.description -%}
   {%- unless post_lead -%}{%- assign post_lead = page.excerpt | strip_html | strip | truncate: 140 -%}{%- endunless -%}
   {%- assign post_date = page.date | date: "%Y.%m.%d" %}
@@ -1067,7 +1072,7 @@
             {%- endif %}
           </div>
 
-          {%- if post_cover %}
+          {%- if post_cover != "" %}
           <figure class="post-cover-fallback">
             <img src="{{ post_cover | escape }}" alt="{{ page.cover_caption | default: page.title | escape }}" decoding="async">
           </figure>
@@ -1109,7 +1114,7 @@
           <span class="theme-dot"></span><span class="theme-label">Light</span>
         </button>
       </nav>
-      <div class="stage" id="stage"{% if post_cover %} data-cover="{{ post_cover | escape }}" data-cover-thumb="{{ post_cover_thumb | escape }}" data-cover-page="{{ page.cover_page | escape }}" data-cover-caption="{{ page.cover_caption | escape }}"{% endif %}></div>
+      <div class="stage" id="stage"{% if post_cover != "" %} data-cover="{{ post_cover | escape }}" data-cover-thumb="{{ post_cover_thumb | escape }}" data-cover-page="{{ post_cover_page | escape }}" data-cover-caption="{{ page.cover_caption | escape }}"{% endif %}></div>
       <div class="stage-bar">
         <span class="meta" id="stage-no"></span>
         <span class="stage-cap" id="stage-cap"></span>
@@ -1134,6 +1139,18 @@
     <button type="button" class="lb-close" id="lb-close" aria-label="閉じる">×</button>
   </div>
 
+  {%- comment -%} この記事が参照する Flickr 写真の URL → { thumb, page }（post.js が Markdown 画像のモバイル用サイズに使う） {%- endcomment -%}
+  {%- assign pf_ids = site.data.flickr_photos.posts[page.path] -%}
+  <script id="post-flickr" type="application/json">{
+  {%- assign pf_first = true -%}
+  {%- if pf_ids -%}{%- for pf_u in site.data.flickr_photos.urls -%}
+    {%- assign pf_id = pf_u[1] | append: "" -%}
+    {%- if pf_ids contains pf_id -%}
+      {%- assign pf_e = site.data.flickr_photos.photos[pf_id] -%}
+      {%- if pf_e -%}{%- unless pf_first -%},{%- endunless -%}{%- assign pf_first = false -%}{{ pf_u[0] | jsonify }}:{ "thumb": {{ pf_e.thumb | default: "" | jsonify }}, "page": {{ pf_e.page | default: "" | jsonify }} }{%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}{%- endif -%}
+  }</script>
   <script src="{{ '/assets/js/post-scenes.js' | relative_url }}" defer></script>
   <script src="{{ '/assets/js/post.js' | relative_url }}" defer></script>
 </body>

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flickr ピッカー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:wght@500&display=swap">
+<style>
+  /* サイトの index.html と同じトークン */
+  :root {
+    --bg: #e1dfda; --ink: #1c1b19; --sub: #5f5b55;
+    --rule: rgba(28,27,25,.14); --line: rgba(28,27,25,.35);
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --serif: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161513; --ink: #e4e1db; --sub: #948f86;
+      --rule: rgba(228,225,219,.14); --line: rgba(228,225,219,.35);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.6 var(--serif); padding-bottom: 260px; }
+  header { padding: 20px 16px 8px; max-width: 1200px; margin: 0 auto; }
+  h1 { font: 500 20px var(--serif); margin: 0; }
+  .lead { font: 12px var(--mono); color: var(--sub); margin: 4px 0 0; }
+  button { font: 12px var(--mono); color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 6px 10px; cursor: pointer; }
+  button:hover:not(:disabled) { background: var(--rule); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  #grid { list-style: none; margin: 0 auto; padding: 8px 16px; max-width: 1200px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .cell { position: relative; display: block; width: 100%; text-align: left; padding: 0; border: 1px solid var(--rule); background: transparent; }
+  .cell img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--rule); }
+  .cell .meta { display: block; padding: 4px 6px 6px; }
+  .cell .t { display: block; font: 12px var(--serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cell .d { display: block; font: 11px var(--mono); color: var(--sub); }
+  .cell[aria-pressed="true"] { outline: 3px solid var(--ink); outline-offset: -1px; }
+  .cell .no { position: absolute; top: 6px; left: 6px; min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px;
+    background: var(--ink); color: var(--bg); font: 500 12px/24px var(--mono); text-align: center; }
+  .cell:not([aria-pressed="true"]) .no { display: none; }
+
+  #status { max-width: 1200px; margin: 0 auto; padding: 12px 16px; font: 12px var(--mono); color: var(--sub); }
+  #sentinel { height: 1px; }
+
+  #tray { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg); border-top: 1px solid var(--line);
+    padding: 10px 16px 14px; max-height: 45vh; overflow: auto; }
+  #tray .inner { max-width: 1200px; margin: 0 auto; }
+  #tray .hint { font: 12px var(--mono); color: var(--sub); margin: 0; }
+  #items { list-style: none; margin: 0 0 10px; padding: 0; display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  #items li { flex: none; width: 120px; border: 1px solid var(--rule); padding: 4px; }
+  #items img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+  #items .row { display: flex; gap: 2px; margin-top: 4px; }
+  #items .row button { padding: 2px 6px; flex: 1; }
+  #items label { display: block; font: 11px var(--mono); margin-top: 4px; cursor: pointer; }
+  #items li.is-cover { border-color: var(--ink); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .actions .count { font: 12px var(--mono); color: var(--sub); margin-right: auto; }
+  #fallback { display: none; width: 100%; margin-top: 10px; }
+  #fallback.show { display: block; }
+  #fallback p { font: 12px var(--mono); color: var(--sub); margin: 0 0 4px; }
+  #fallback textarea { width: 100%; min-height: 90px; font: 12px var(--mono); background: transparent; color: var(--ink); border: 1px solid var(--line); }
+
+  #toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 10; max-width: 90vw;
+    background: var(--ink); color: var(--bg); font: 12px var(--mono); padding: 8px 14px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Flickr ピッカー</h1>
+  <p class="lead">Photostream から写真を選び、記事用コードをコピーします。選んだ写真は _data/flickr_photos.json に追加されます。</p>
+</header>
+
+<ul id="grid"></ul>
+<div id="status" role="status"></div>
+<div id="sentinel"></div>
+
+<section id="tray" aria-label="選んだ写真">
+  <div class="inner">
+    <p class="hint" id="hint">写真をクリックして選びます（選んだ順に並びます）。</p>
+    <ol id="items"></ol>
+    <div class="actions">
+      <span class="count" id="count"></span>
+      <button type="button" id="copyBody" disabled>本文用をコピー</button>
+      <button type="button" id="copyCover" disabled>cover 行をコピー</button>
+    </div>
+    <div id="fallback">
+      <p>クリップボードに書き込めませんでした。下のテキストをコピーしてください。</p>
+      <textarea id="fallbackText" readonly></textarea>
+    </div>
+  </div>
+</section>
+<div id="toast" aria-live="polite"></div>
+
+<script type="module">
+import { buildBody, buildCover } from "./snippets.mjs";
+
+const $ = id => document.getElementById(id);
+const grid = $("grid"), statusEl = $("status"), itemsEl = $("items"), toastEl = $("toast");
+const photos = new Map();   // id -> photo（読み込んだもの）
+let selected = [];          // 選んだ順の id
+let coverId = null;
+let nextPage = 1, pages = Infinity, loading = false, failed = false;
+
+const fmtDate = s => (s || "").slice(0, 10).replaceAll("-", ".");
+const el = (tag, props = {}, ...kids) => {
+  const e = Object.assign(document.createElement(tag), props);
+  e.append(...kids);
+  return e;
+};
+
+// ---- グリッド ----
+function addCell(p) {
+  const b = el("button", { type: "button", className: "cell" });
+  b.dataset.id = p.id;
+  b.setAttribute("aria-pressed", "false");
+  b.append(
+    el("img", { src: p.thumb, alt: "", loading: "lazy" }),
+    el("span", { className: "no" }),
+    el("span", { className: "meta" },
+      el("span", { className: "t", textContent: p.title || "(無題)" }),
+      el("span", { className: "d", textContent: fmtDate(p.taken) }))
+  );
+  b.addEventListener("click", () => toggle(p.id));
+  grid.append(el("li", {}, b));
+}
+
+function syncGrid() {
+  for (const b of grid.querySelectorAll(".cell")) {
+    const i = selected.indexOf(b.dataset.id);
+    b.setAttribute("aria-pressed", String(i >= 0));
+    b.querySelector(".no").textContent = i >= 0 ? i + 1 : "";
+  }
+}
+
+async function loadMore() {
+  if (loading || failed || nextPage > pages) return;
+  loading = true;
+  statusEl.textContent = "読み込み中…";
+  try {
+    const r = await fetch(`/api/photos?page=${nextPage}`);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    pages = j.pages;
+    nextPage = j.page + 1;
+    for (const p of j.photos) { photos.set(p.id, p); addCell(p); }
+    syncGrid();
+    statusEl.textContent = photos.size === 0 ? "写真がありません" : "";
+  } catch (e) {
+    failed = true;
+    statusEl.textContent = `読み込みに失敗しました（${e.message}） `;
+    statusEl.append(el("button", { type: "button", textContent: "再試行", onclick: () => { failed = false; loadMore(); } }));
+  } finally {
+    loading = false;
+  }
+  // 番兵がまだ見えているなら続けて読む
+  if (!failed && nextPage <= pages) requestAnimationFrame(() => {
+    if ($("sentinel").getBoundingClientRect().top < innerHeight + 200) loadMore();
+  });
+}
+new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) loadMore(); }, { rootMargin: "200px" })
+  .observe($("sentinel"));
+
+// ---- 選択 ----
+function toggle(id) {
+  const i = selected.indexOf(id);
+  if (i >= 0) { selected.splice(i, 1); if (coverId === id) coverId = null; }
+  else selected.push(id);
+  render();
+}
+function move(id, d) {
+  const i = selected.indexOf(id), j = i + d;
+  if (j < 0 || j >= selected.length) return;
+  [selected[i], selected[j]] = [selected[j], selected[i]];
+  render();
+}
+const chosen = () => selected.map(id => ({ id, url: photos.get(id).url }));
+
+function render() {
+  // 再構築でフォーカスが失われないよう、フォーカス中のトレイ操作（id + 種類）を覚えておく
+  const a = document.activeElement;
+  const focus = a && itemsEl.contains(a) ? { id: a.closest("li").dataset.id, act: a.dataset.act } : null;
+  syncGrid();
+  itemsEl.replaceChildren();
+  selected.forEach((id, i) => {
+    const p = photos.get(id);
+    const li = el("li", { className: id === coverId ? "is-cover" : "" });
+    li.dataset.id = id;
+    // cover は 1 枚まで・解除可。矢印キーで移動しても値が変わらないよう、ラジオではなくトグルボタンにする
+    const cover = el("button", { type: "button", textContent: id === coverId ? "cover ✓" : "cover にする", onclick: () => { coverId = coverId === id ? null : id; render(); } });
+    cover.dataset.act = "cover";
+    cover.setAttribute("aria-pressed", String(id === coverId));
+    li.append(
+      el("img", { src: p.thumb, alt: p.title || "" }),
+      el("div", { className: "row" },
+        el("button", { type: "button", textContent: "↑", title: "前へ", disabled: i === 0, onclick: () => move(id, -1) }),
+        el("button", { type: "button", textContent: "↓", title: "後ろへ", disabled: i === selected.length - 1, onclick: () => move(id, 1) }),
+        el("button", { type: "button", textContent: "×", title: "選択を外す", onclick: () => toggle(id) })),
+      cover
+    );
+    const [up, down, rm] = li.querySelectorAll(".row button");
+    up.dataset.act = "up"; down.dataset.act = "down"; rm.dataset.act = "rm";
+    itemsEl.append(li);
+  });
+  $("hint").hidden = selected.length > 0;
+  $("count").textContent = selected.length ? `${selected.length} 枚選択` : "";
+  const hasBody = selected.some(id => id !== coverId);
+  $("copyBody").disabled = !hasBody;
+  $("copyCover").disabled = coverId == null;
+  $("fallback").classList.remove("show");
+  if (focus) {
+    const li = [...itemsEl.children].find(l => l.dataset.id === focus.id);
+    // 端に来て無効になった ↑ ↓ は反対側へ、× や消えた項目は隣の項目へ
+    const pick = li && (li.querySelector(`[data-act="${focus.act}"]:not(:disabled)`)
+      || li.querySelector('[data-act="up"]:not(:disabled), [data-act="down"]:not(:disabled)'));
+    (pick || itemsEl.querySelector("button:not(:disabled)") || $("copyBody")).focus();
+  }
+}
+
+// ---- コピー ----
+let toastTimer;
+function toast(msg, ms = 4500) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), ms);
+}
+
+async function copy(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const fb = $("fallbackText");
+    fb.value = text;
+    $("fallback").classList.add("show");
+    fb.focus(); fb.select();
+    return false;
+  }
+  return true;
+}
+
+async function copyAndResolve(text) {
+  if (!text) return;
+  const items = chosen();
+  const ok = await copy(text);
+  // クリップボードが拒否されても、貼り付けられる前提なのでデータ追加は行う
+  const lead = ok ? "コピーしました" : "クリップボードに書き込めませんでした（下のテキストをコピーしてください）";
+  if (ok) $("fallback").classList.remove("show");
+  try {
+    const r = await fetch("/api/resolve", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ items })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    if (j.failed?.length) {
+      toast(`${lead}・${j.resolved.length} 枚をデータに追加。取得に失敗した ID：${j.failed.join(", ")}（あとで node scripts/fetch-flickr.mjs を実行してください）`, 9000);
+    } else {
+      toast(`${lead}・${j.resolved.length} 枚をデータに追加`);
+    }
+  } catch (e) {
+    toast(`${lead}。ただしデータは更新できませんでした（${e.message}）。node scripts/fetch-flickr.mjs を実行してください`, 9000);
+  }
+}
+
+$("copyBody").addEventListener("click", () => copyAndResolve(buildBody(chosen(), coverId)));
+$("copyCover").addEventListener("click", () => copyAndResolve(buildCover(chosen(), coverId)));
+
+render();
+loadMore();
+</script>
+</body>
+</html>
