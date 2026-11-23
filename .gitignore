@@ -14,8 +14,15 @@ _site/
 # Superpowers brainstorm sessions
 .superpowers/
 
+# ローカル専用の道具（SNS シェアカードなど）
+tools/
+
 # Local secrets (Flickr API key)
 .env
+
+# Obsidian（Vault 設定・ゴミ箱）
+.obsidian/
+.trash/
 
 # macOS
 .DS_Store

@@ -6,9 +6,12 @@ baseurl: "/PhotoPortfolio"
 exclude:
   - docs
   - scripts
+  - tools
   - flickr.config.json
   - node_modules
   - Gemfile
   - Gemfile.lock
   - error-*.md
   - CLAUDE.md
+  - .obsidian
+  - .trash
