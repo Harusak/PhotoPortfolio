@@ -1139,6 +1139,18 @@
     <button type="button" class="lb-close" id="lb-close" aria-label="閉じる">×</button>
   </div>
 
+  {%- comment -%} この記事が参照する Flickr 写真の URL → { thumb, page }（post.js が Markdown 画像のモバイル用サイズに使う） {%- endcomment -%}
+  {%- assign pf_ids = site.data.flickr_photos.posts[page.path] -%}
+  <script id="post-flickr" type="application/json">{
+  {%- assign pf_first = true -%}
+  {%- if pf_ids -%}{%- for pf_u in site.data.flickr_photos.urls -%}
+    {%- assign pf_id = pf_u[1] | append: "" -%}
+    {%- if pf_ids contains pf_id -%}
+      {%- assign pf_e = site.data.flickr_photos.photos[pf_id] -%}
+      {%- if pf_e -%}{%- unless pf_first -%},{%- endunless -%}{%- assign pf_first = false -%}{{ pf_u[0] | jsonify }}:{ "thumb": {{ pf_e.thumb | default: "" | jsonify }}, "page": {{ pf_e.page | default: "" | jsonify }} }{%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}{%- endif -%}
+  }</script>
   <script src="{{ '/assets/js/post-scenes.js' | relative_url }}" defer></script>
   <script src="{{ '/assets/js/post.js' | relative_url }}" defer></script>
 </body>
