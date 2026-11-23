@@ -1237,11 +1237,14 @@
       {% for post in jposts limit: 3 %}
         {% assign jc = post.category | default: post.categories.first | downcase %}
         {% case jc %}{% when 'travel', 'gear', 'news' %}{% assign jlabel = jc | capitalize %}{% else %}{% assign jlabel = '' %}{% endcase %}
-        {% assign jcover = post.cover | default: post.image | relative_url %}
-        {% assign jthumb = post.thumb | relative_url | default: jcover %}
+        {% comment %} cover：post.cover を解決し、無い・データに無い写真ページなら post.image（flickr-resolve.html） {% endcomment %}
+        {% include flickr-resolve.html url=post.cover %}
+        {% if fr_kind == "" or fr_kind == "missing" %}{% include flickr-resolve.html url=post.image %}{% endif %}
+        {% assign jcover = fr_full %}
+        {% if post.thumb %}{% assign jthumb = post.thumb | relative_url %}{% else %}{% assign jthumb = fr_thumb | default: jcover %}{% endif %}
         {% if forloop.first %}
       <a class="j-hero-card j-main" data-card href="{{ post.url | relative_url }}">
-        {% if jcover %}<img src="{{ jcover }}" alt="{{ post.title | escape }}" decoding="async">{% endif %}
+        {% if jcover != "" %}<img src="{{ jcover }}" alt="{{ post.title | escape }}" decoding="async">{% endif %}
         <span class="j-main-text">
           <span class="j-main-meta">Latest{% if jlabel != '' %} — {{ jlabel }}{% endif %} — {{ post.date | date: "%Y.%m.%d" }}</span>
           <span class="j-main-title">{{ post.title | escape }}</span>
@@ -1250,7 +1253,7 @@
       {% if jposts.size > 1 %}<div class="j-side">{% endif %}
         {% else %}
         <a class="j-hero-card" data-card href="{{ post.url | relative_url }}">
-          {% if jthumb %}<img src="{{ jthumb }}" alt="{{ post.title | escape }}" decoding="async">{% endif %}
+          {% if jthumb != "" %}<img src="{{ jthumb }}" alt="{{ post.title | escape }}" decoding="async">{% endif %}
           <span class="j-meta">{{ post.date | date: "%Y.%m.%d" }}{% if jlabel != '' %} · {{ jlabel }}{% endif %}</span>
           <span class="j-side-title">{{ post.title | escape }}</span>
         </a>
@@ -1288,8 +1291,11 @@
           {% endif %}
           {% assign jc = post.category | default: post.categories.first | downcase %}
           {% case jc %}{% when 'travel', 'gear', 'news' %}{% assign jlabel = jc | capitalize %}{% else %}{% assign jc = '' %}{% assign jlabel = '' %}{% endcase %}
-          {% assign jcover = post.cover | default: post.image | relative_url %}
-          {% assign jthumb = post.thumb | relative_url | default: jcover %}
+          {% comment %} cover：post.cover を解決し、無い・データに無い写真ページなら post.image（flickr-resolve.html） {% endcomment %}
+          {% include flickr-resolve.html url=post.cover %}
+          {% if fr_kind == "" or fr_kind == "missing" %}{% include flickr-resolve.html url=post.image %}{% endif %}
+          {% assign jcover = fr_full %}
+          {% if post.thumb %}{% assign jthumb = post.thumb | relative_url %}{% else %}{% assign jthumb = fr_thumb | default: jcover %}{% endif %}
             <a class="j-card" data-card href="{{ post.url | relative_url }}" data-year="{{ y }}" data-category="{{ jc }}" data-index="{{ forloop.index0 | plus: 3 }}">
               <img src="{{ jthumb }}" alt="{{ post.title | escape }}" loading="lazy" decoding="async">
               <span class="j-meta">{{ post.date | date: "%Y.%m.%d" }}{% if jlabel != '' %} · {{ jlabel }}{% endif %}</span>

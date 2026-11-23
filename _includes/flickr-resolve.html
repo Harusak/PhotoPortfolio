@@ -1,0 +1,37 @@
+{%- comment -%}
+  Flickr の URL を _data/flickr_photos.json で解決する。
+  使い方：{% include flickr-resolve.html url=X %}
+  呼び出し元に次の変数を assign する（Jekyll の include は変数を共有する）。呼ぶたびに全部上書きする。
+    fr_kind  ：""（url が空）／"flickr"（データで解決）／"missing"（写真ページ URL・photo.gne だがデータに無い）／"plain"（それ以外）
+    fr_full  ：写真ページ URL なら entry.full、直接の画像 URL なら書かれた URL のまま、plain なら url | relative_url、missing なら ""
+    fr_thumb ：flickr なら entry.thumb、plain なら fr_full、missing なら ""
+    fr_page  ：flickr なら entry.page、missing なら書かれた URL、plain なら ""
+    fr_title ：flickr なら entry.title、それ以外 ""
+{%- endcomment -%}
+{%- assign fr_url = include.url | default: "" | strip -%}
+{%- assign fr_kind = "" -%}
+{%- assign fr_full = "" -%}
+{%- assign fr_thumb = "" -%}
+{%- assign fr_page = "" -%}
+{%- assign fr_title = "" -%}
+{%- if fr_url != "" -%}
+  {%- assign fr_is_page = false -%}
+  {%- if fr_url contains "flickr.com/photos/" or fr_url contains "flickr.com/photo.gne" -%}{%- assign fr_is_page = true -%}{%- endif -%}
+  {%- assign fr_id = site.data.flickr_photos.urls[fr_url] -%}
+  {%- assign fr_entry = nil -%}
+  {%- if fr_id -%}{%- assign fr_entry = site.data.flickr_photos.photos[fr_id] -%}{%- endif -%}
+  {%- if fr_entry -%}
+    {%- assign fr_kind = "flickr" -%}
+    {%- if fr_is_page -%}{%- assign fr_full = fr_entry.full -%}{%- else -%}{%- assign fr_full = fr_url -%}{%- endif -%}
+    {%- assign fr_thumb = fr_entry.thumb -%}
+    {%- assign fr_page = fr_entry.page -%}
+    {%- assign fr_title = fr_entry.title -%}
+  {%- elsif fr_is_page -%}
+    {%- assign fr_kind = "missing" -%}
+    {%- assign fr_page = fr_url -%}
+  {%- else -%}
+    {%- assign fr_kind = "plain" -%}
+    {%- assign fr_full = fr_url | relative_url -%}
+    {%- assign fr_thumb = fr_full -%}
+  {%- endif -%}
+{%- endif -%}
