@@ -182,22 +182,29 @@ function move(id, d) {
 const chosen = () => selected.map(id => ({ id, url: photos.get(id).url }));
 
 function render() {
+  // 再構築でフォーカスが失われないよう、フォーカス中のトレイ操作（id + 種類）を覚えておく
+  const a = document.activeElement;
+  const focus = a && itemsEl.contains(a) ? { id: a.closest("li").dataset.id, act: a.dataset.act } : null;
   syncGrid();
   itemsEl.replaceChildren();
   selected.forEach((id, i) => {
     const p = photos.get(id);
     const li = el("li", { className: id === coverId ? "is-cover" : "" });
-    const radio = el("input", { type: "radio", name: "cover", checked: id === coverId });
-    // ラジオは通常クリックでは解除できないので、同じものを押したら解除する
-    radio.addEventListener("click", () => { coverId = coverId === id ? null : id; render(); });
+    li.dataset.id = id;
+    // cover は 1 枚まで・解除可。矢印キーで移動しても値が変わらないよう、ラジオではなくトグルボタンにする
+    const cover = el("button", { type: "button", textContent: id === coverId ? "cover ✓" : "cover にする", onclick: () => { coverId = coverId === id ? null : id; render(); } });
+    cover.dataset.act = "cover";
+    cover.setAttribute("aria-pressed", String(id === coverId));
     li.append(
       el("img", { src: p.thumb, alt: p.title || "" }),
       el("div", { className: "row" },
         el("button", { type: "button", textContent: "↑", title: "前へ", disabled: i === 0, onclick: () => move(id, -1) }),
         el("button", { type: "button", textContent: "↓", title: "後ろへ", disabled: i === selected.length - 1, onclick: () => move(id, 1) }),
         el("button", { type: "button", textContent: "×", title: "選択を外す", onclick: () => toggle(id) })),
-      el("label", {}, radio, ` cover（${i + 1}）`)
+      cover
     );
+    const [up, down, rm] = li.querySelectorAll(".row button");
+    up.dataset.act = "up"; down.dataset.act = "down"; rm.dataset.act = "rm";
     itemsEl.append(li);
   });
   $("hint").hidden = selected.length > 0;
@@ -206,6 +213,13 @@ function render() {
   $("copyBody").disabled = !hasBody;
   $("copyCover").disabled = coverId == null;
   $("fallback").classList.remove("show");
+  if (focus) {
+    const li = [...itemsEl.children].find(l => l.dataset.id === focus.id);
+    // 端に来て無効になった ↑ ↓ は反対側へ、× や消えた項目は隣の項目へ
+    const pick = li && (li.querySelector(`[data-act="${focus.act}"]:not(:disabled)`)
+      || li.querySelector('[data-act="up"]:not(:disabled), [data-act="down"]:not(:disabled)'));
+    (pick || itemsEl.querySelector("button:not(:disabled)") || $("copyBody")).focus();
+  }
 }
 
 // ---- コピー ----
@@ -225,7 +239,6 @@ async function copy(text) {
     fb.value = text;
     $("fallback").classList.add("show");
     fb.focus(); fb.select();
-    toast("クリップボードに書き込めませんでした。下のテキストをコピーしてください");
     return false;
   }
   return true;
@@ -235,8 +248,9 @@ async function copyAndResolve(text) {
   if (!text) return;
   const items = chosen();
   const ok = await copy(text);
-  if (!ok) return;
-  $("fallback").classList.remove("show");
+  // クリップボードが拒否されても、貼り付けられる前提なのでデータ追加は行う
+  const lead = ok ? "コピーしました" : "クリップボードに書き込めませんでした（下のテキストをコピーしてください）";
+  if (ok) $("fallback").classList.remove("show");
   try {
     const r = await fetch("/api/resolve", {
       method: "POST",
@@ -246,12 +260,12 @@ async function copyAndResolve(text) {
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
     if (j.failed?.length) {
-      toast(`コピーしました・${j.resolved.length} 枚をデータに追加。取得に失敗した ID：${j.failed.join(", ")}（あとで node scripts/fetch-flickr.mjs を実行してください）`, 9000);
+      toast(`${lead}・${j.resolved.length} 枚をデータに追加。取得に失敗した ID：${j.failed.join(", ")}（あとで node scripts/fetch-flickr.mjs を実行してください）`, 9000);
     } else {
-      toast(`コピーしました・${j.resolved.length} 枚をデータに追加`);
+      toast(`${lead}・${j.resolved.length} 枚をデータに追加`);
     }
   } catch (e) {
-    toast(`コピーしました。ただしデータは更新できませんでした（${e.message}）。node scripts/fetch-flickr.mjs を実行してください`, 9000);
+    toast(`${lead}。ただしデータは更新できませんでした（${e.message}）。node scripts/fetch-flickr.mjs を実行してください`, 9000);
   }
 }
 
